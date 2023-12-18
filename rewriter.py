@@ -61,7 +61,7 @@ def magic_open(filename, mode):
     """
     Open a file, URL or stdin/stdout.
     """
-    logging.debug("Magic opening '%s'...", filename)
+    logging.info("Opening '%s'...", filename)
     if filename == "-":
         if mode == "r":
             return sys.stdin
@@ -158,6 +158,8 @@ def main():
                     latest_revision['url'].rsplit('/', 1)[-1]
                 )
                 download(latest_revision['url'], filename)
+            else:
+                logging.info("Refraining from downloading latest database.")
             if args.urlprefix:
                 new_url = latest_revision['url'].replace(
                     SRC_URL_PREFIX,
@@ -169,15 +171,19 @@ def main():
                     new_url
                 )
                 latest_revision['url'] = new_url
+            else:
+                logging.info("Refraining from updating URL prefix.")
             if args.rewrite_listing_json:
                 logging.info(
-                    "Outputting new listing.json to '%s':", args.output
+                    "Outputting new listing.json to '%s'.", args.output
                 )
                 print(json.dumps({
                     'available': {
                         latest_version_key: [latest_revision]
                     }
                 }), file=output_file)
+            else:
+                logging.info("Refraining from outputting new listing.json.")
 
 
 if __name__ == "__main__":
