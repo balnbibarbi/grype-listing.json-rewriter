@@ -49,8 +49,8 @@ def find_latest_revision(version):
     for this_revision in version:
         this_revision_built_date = parse_iso8601(this_revision['built'])
         if (
-            latest_revision_built_date is None
-            or this_revision_built_date > latest_revision_built_date
+            latest_revision_built_date is None or
+            this_revision_built_date > latest_revision_built_date
         ):
             latest_revision_built_date = this_revision_built_date
             latest_revision = this_revision
@@ -82,7 +82,7 @@ def download(url, filename):
     Download a URL to a local file.
     """
     logging.info("Downloading '%s' to '%s'", url, filename)
-    with(open(filename, "wb")) as outfh:
+    with (open(filename, "wb")) as outfh:
         req = requests.get(url)
         req.raise_for_status()
         outfh.write(req.content)
@@ -144,7 +144,9 @@ def main():
         with magic_open(args.output, "w") as output_file:
             listing = json.load(input_file)
             versions = listing['available']
-            (latest_version_key, latest_version) = find_latest_version(versions)
+            (latest_version_key, latest_version) = find_latest_version(
+                versions
+            )
             latest_revision = find_latest_revision(latest_version)
             if args.download_latest_db:
                 filename = os.path.join(
@@ -153,7 +155,10 @@ def main():
                 )
                 download(latest_revision['url'], filename)
             if args.urlprefix:
-                new_url = latest_revision['url'].replace(SRC_URL_PREFIX, args.urlprefix)
+                new_url = latest_revision['url'].replace(
+                    SRC_URL_PREFIX,
+                    args.urlprefix
+                )
                 logging.debug(
                     "Updating URL prefix from '%s' to '%s'",
                     latest_revision['url'],
@@ -164,7 +169,7 @@ def main():
                 logging.debug("Outputting new listing.json:")
                 print(json.dumps({
                     'available': {
-                        latest_version_key: [ latest_revision ]
+                        latest_version_key: [latest_revision]
                     }
                 }), file=output_file)
 
