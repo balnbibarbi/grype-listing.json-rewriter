@@ -148,6 +148,10 @@ def main():
                 versions
             )
             latest_revision = find_latest_revision(latest_version)
+            logging.info(
+                "Latest revision is %s",
+                parse_iso8601(latest_revision['built'])
+            )
             if args.download_latest_db:
                 filename = os.path.join(
                     args.download_latest_db,
@@ -166,7 +170,7 @@ def main():
                 )
                 latest_revision['url'] = new_url
             if args.rewrite_listing_json:
-                logging.debug("Outputting new listing.json:")
+                logging.info("Outputting new listing.json to '%s':", args.output)
                 print(json.dumps({
                     'available': {
                         latest_version_key: [latest_revision]
