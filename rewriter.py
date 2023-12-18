@@ -1,13 +1,14 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 
 import sys
+import io
 import json
 import argparse
+import requests
 from datetime import datetime
 
 
-LISTING_JSON_FILENAME = "listing.json"
 SRC_URL_PREFIX = 'https://toolbox-data.anchore.io/grype/databases/'
 
 
@@ -35,7 +36,7 @@ def find_latest_revision(version):
     return latest_revision
 
 
-def open_or_std_filehandle(filename, mode):
+def magic_open(filename, mode):
     if filename == "-":
         if mode == "r":
             return sys.stdin
@@ -43,6 +44,12 @@ def open_or_std_filehandle(filename, mode):
             return sys.stdout
         else:
             return sys.stderr
+    elif mode == "r" and (
+        filename.startswith("http://") or filename.startswith("https://")
+    ):
+        req = requests.get(filename)
+        req.raise_for_status()
+        return io.StringIO(req.text)
     else:
         return open(filename, mode)
 
@@ -59,8 +66,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "-i",
         "--input",
-        help="Input listing.json file",
-        default=LISTING_JSON_FILENAME,
+        help="Input listing.json file or URL",
+        default="-",
         type=str
     )
     parser.add_argument(
@@ -71,8 +78,8 @@ if __name__ == "__main__":
         type=str
     )
     args = parser.parse_args()
-    with open_or_std_filehandle(args.input, "r") as input_file:
-        with open_or_std_filehandle(args.output, "w") as output_file:
+    with magic_open(args.input, "r") as input_file:
+        with magic_open(args.output, "w") as output_file:
             listing = json.load(input_file)
             versions = listing['available']
             (latest_version_key, latest_version) = find_latest_version(versions)
