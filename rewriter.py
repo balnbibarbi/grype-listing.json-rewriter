@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 
+import os
 import sys
 import io
 import json
@@ -54,6 +55,14 @@ def magic_open(filename, mode):
         return open(filename, mode)
 
 
+def download(url, filename):
+    # print("Downloading %s to %s" % (url, filename))
+    with(open(filename, "wb")) as outfh:
+        req = requests.get(url)
+        req.raise_for_status()
+        outfh.write(req.content)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -77,6 +86,20 @@ if __name__ == "__main__":
         default="-",
         type=str
     )
+    parser.add_argument(
+        "-d",
+        "--download-latest-db",
+        help="Download the latest database file to this directory",
+        default="",
+        type=str
+    )
+    parser.add_argument(
+        "-r",
+        "--rewrite-listing-json",
+        help="Output a modified listing.json",
+        default=True,
+        type=bool
+    )
     args = parser.parse_args()
     with magic_open(args.input, "r") as input_file:
         with magic_open(args.output, "w") as output_file:
@@ -84,10 +107,14 @@ if __name__ == "__main__":
             versions = listing['available']
             (latest_version_key, latest_version) = find_latest_version(versions)
             latest_revision = find_latest_revision(latest_version)
+            if args.download_latest_db:
+                filename = os.path.join(args.download_latest_db, latest_revision['url'].rsplit('/', 1)[-1])
+                download(latest_revision['url'], filename)
             latest_revision['url'] = latest_revision['url'].replace(SRC_URL_PREFIX, args.urlprefix)
-            print(json.dumps({
-                'available': {
-                    latest_version_key: [ latest_revision ]
-                }
-            }), file=output_file)
+            if args.rewrite_listing_json:
+                print(json.dumps({
+                    'available': {
+                        latest_version_key: [ latest_revision ]
+                    }
+                }), file=output_file)
     sys.exit(0)
