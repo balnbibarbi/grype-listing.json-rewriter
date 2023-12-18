@@ -4,6 +4,7 @@
 import os
 import sys
 import io
+import logging
 import json
 import argparse
 import requests
@@ -23,6 +24,7 @@ def find_latest_version(versions):
     version_keys.sort()
     latest_version_key = version_keys[-1]
     latest_version = versions[latest_version_key]
+    logging.debug("Latest version: %s %s" % (latest_version_key, latest_version))
     return (latest_version_key, latest_version)
 
 
@@ -38,6 +40,7 @@ def find_latest_revision(version):
 
 
 def magic_open(filename, mode):
+    logging.debug("Magic opening '%s'..." % filename)
     if filename == "-":
         if mode == "r":
             return sys.stdin
@@ -56,7 +59,7 @@ def magic_open(filename, mode):
 
 
 def download(url, filename):
-    # print("Downloading %s to %s" % (url, filename))
+    logging.info("Downloading '%s' to '%s'" % (url, filename))
     with(open(filename, "wb")) as outfh:
         req = requests.get(url)
         req.raise_for_status()
@@ -69,7 +72,7 @@ if __name__ == "__main__":
         "-u",
         "--urlprefix",
         help="New URL prefix to replace existing prefix",
-        default="https://localhost/databases/",
+        default="",
         type=str
     )
     parser.add_argument(
@@ -100,7 +103,18 @@ if __name__ == "__main__":
         default=True,
         type=bool
     )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        help="Output debugging messages",
+        default=False,
+        action='store_true'
+    )
     args = parser.parse_args()
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
     with magic_open(args.input, "r") as input_file:
         with magic_open(args.output, "w") as output_file:
             listing = json.load(input_file)
@@ -110,8 +124,12 @@ if __name__ == "__main__":
             if args.download_latest_db:
                 filename = os.path.join(args.download_latest_db, latest_revision['url'].rsplit('/', 1)[-1])
                 download(latest_revision['url'], filename)
-            latest_revision['url'] = latest_revision['url'].replace(SRC_URL_PREFIX, args.urlprefix)
+            if args.urlprefix:
+                new_url = latest_revision['url'].replace(SRC_URL_PREFIX, args.urlprefix)
+                logging.debug("Updating URL prefix from '%s' to '%s'" % (latest_revision['url'], new_url))
+                latest_revision['url'] = new_url
             if args.rewrite_listing_json:
+                logging.debug("Outputting new listing.json:")
                 print(json.dumps({
                     'available': {
                         latest_version_key: [ latest_revision ]
