@@ -170,7 +170,9 @@ def main():
                 )
                 latest_revision['url'] = new_url
             if args.rewrite_listing_json:
-                logging.info("Outputting new listing.json to '%s':", args.output)
+                logging.info(
+                    "Outputting new listing.json to '%s':", args.output
+                )
                 print(json.dumps({
                     'available': {
                         latest_version_key: [latest_revision]
