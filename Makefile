@@ -5,7 +5,7 @@ all: run
 run: build
 	docker run -i \
 		-e INPUT=https://toolbox-data.anchore.io/grype/databases/listing.json \
-		-e OUTPUT=- \
+		-e OUTPUT=/tmp/listing.json \
 		-e URLPREFIX=http://example.com/databases/ \
 		-e DOWNLOAD_LATEST_DB=/tmp/ \
 		-v "/tmp:/tmp" \
