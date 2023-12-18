@@ -1,3 +1,5 @@
 listing.json
 Dockerfile
 Makefile
+.gitignore
+README.md
