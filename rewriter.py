@@ -271,11 +271,11 @@ def main():
         latest_schema_key,
         latest_version
     ) = load_listing_json(args.input)
-    # Optionally, download the latest version
+    # Optionally, download vulnerability database(s)
     download_dbs(listing, latest_version, args.download_dbs, args.minimal)
-    # Optionally, rewrite the database URL
+    # Optionally, rewrite the database URLs in the listing
     rewrite_urls(listing, args.url_prefix)
-    # Optionally, output a minimal listing.json
+    # Optionally, output a listing.json
     output_listing_json(
         args.output,
         args.minimal,
