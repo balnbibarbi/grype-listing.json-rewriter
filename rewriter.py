@@ -37,7 +37,6 @@ def find_latest_version(versions):
     version_keys.sort()
     latest_version_key = version_keys[-1]
     latest_version = versions[latest_version_key]
-    logging.debug("Latest version: %s %s", latest_version_key, latest_version)
     return (latest_version_key, latest_version)
 
 
@@ -150,6 +149,7 @@ def main():
             (latest_version_key, latest_version) = find_latest_version(
                 versions
             )
+            logging.debug("Latest version: %s %s", latest_version_key, latest_version)
             # Find the latest revision in the latest version
             latest_revision = find_latest_revision(latest_version)
             logging.info(
