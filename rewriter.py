@@ -21,6 +21,20 @@ SRC_URL_PREFIX = 'https://toolbox-data.anchore.io/grype/databases/'
 HTTP_TIMEOUT_MAX = 300
 
 
+def str2bool(v):
+    """
+    Convert a human-readable strign to a boolean value.
+    """
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1', 'on', 'enabled'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0', 'off', 'disabled'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected')
+
+
 def parse_iso8601(iso8601_datetime):
     """
     Parse an ISO 8601 datetime string in format YYYY-MM-DDThh:mm:ssZ.
@@ -103,7 +117,7 @@ def download_version(version, output_dir):
         logging.info("Refraining from downloading latest database.")
 
 
-def output_listing_json(file_name, latest_schema_key, latest_schema):
+def output_listing_json(file_name, minimal, listing, latest_schema_key, latest_schema):
     """
     Output a Grype style listing.json file.
     """
@@ -112,15 +126,17 @@ def output_listing_json(file_name, latest_schema_key, latest_schema):
     )
     if file_name:
         with magic_open(file_name, "w") as output_file:
-            print(json.dumps(
-                {
+            if minimal:
+                data = {
                     'available': {
                         latest_schema_key: [
                             latest_schema
                         ]
                     }
                 }
-            ), file=output_file)
+            else:
+                data = listing
+            print(json.dumps(data), file=output_file)
     else:
         logging.info("Refraining from outputting new listing.json.")
 
@@ -149,7 +165,7 @@ def load_listing_json(input_url):
             "Latest version is %s",
             latest_version_build_date
         )
-        return (latest_schema_key, latest_version)
+        return (listing, latest_schema_key, latest_version)
 
 
 def rewrite_version_url(version, new_prefix):
@@ -184,7 +200,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-u",
-        "--urlprefix",
+        "--url-prefix",
         help="New URL prefix to replace existing prefix",
         default="",
         type=str
@@ -204,6 +220,13 @@ def main():
         type=str
     )
     parser.add_argument(
+        "-m",
+        "--minimal",
+        help="Only output latest database schema and version",
+        default=True,
+        type=str2bool
+    )
+    parser.add_argument(
         "-d",
         "--download-latest-db",
         help="Download the latest database file to this directory",
@@ -215,7 +238,7 @@ def main():
         "--verbose",
         help="Output debugging messages",
         default=False,
-        action='store_true'
+        type=str2bool
     )
     args = parser.parse_args()
     if args.verbose:
@@ -224,15 +247,16 @@ def main():
         logging.basicConfig(level=logging.INFO)
     # Load the listing.json list of vulnerability database schemas
     (
+        listing,
         latest_schema_key,
         latest_version
     ) = load_listing_json(args.input)
     # Optionally, download the latest version
     download_version(latest_version, args.download_latest_db)
     # Optionally, rewrite the database URL
-    rewrite_version_url(latest_version, args.urlprefix)
+    rewrite_version_url(latest_version, args.url_prefix)
     # Optionally, output a minimal listing.json
-    output_listing_json(args.output, latest_schema_key, latest_version)
+    output_listing_json(args.output, args.minimal, listing, latest_schema_key, latest_version)
     return 0
 
 
