@@ -33,7 +33,7 @@ push: build
 local:
 	./rewriter.py \
 	--input              "$(LISTING_JSON_URL)" \
-    --output             "$(OUTPUT_LISTING_JSON)" \
-    --url-prefix         "$(NEW_URL_PREFIX)" \
-    --download-latest-db "$(DB_OUTPUT_DIR)" \
+	--output             "$(OUTPUT_LISTING_JSON)" \
+	--url-prefix         "$(NEW_URL_PREFIX)" \
+	--download-latest-db "$(DB_OUTPUT_DIR)" \
 	--minimal            "$(MINIMAL)"

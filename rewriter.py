@@ -123,7 +123,9 @@ def output_listing_json(
     Output a Grype style listing.json file.
     """
     logging.info(
-        "Outputting new listing.json to '%s'.", file_name
+        "Outputting %s listing.json to '%s'.",
+        "minimal" if minimal else "full",
+        file_name
     )
     if file_name:
         with magic_open(file_name, "w") as output_file:
@@ -169,29 +171,31 @@ def load_listing_json(input_url):
         return (listing, latest_schema_key, latest_version)
 
 
-def rewrite_version_url(version, new_prefix):
+def rewrite_urls(listing, new_prefix):
     """
     Replace the Anchore URL prefix on the given version's
     database URL with the given URL prefix.
     """
     if new_prefix:
         logging.debug(
-            "Replacing '%s' with '%s' in URL",
+            "Replacing '%s' with '%s' in database URLs",
             SRC_URL_PREFIX,
             new_prefix
         )
-        new_url = version['url'].replace(
-            SRC_URL_PREFIX,
-            new_prefix
-        )
-        logging.debug(
-            "Updating URL from '%s' to '%s'",
-            version['url'],
-            new_url
-        )
-        version['url'] = new_url
+        for schema in listing['available'].values():
+            for version in schema:
+                new_url = version['url'].replace(
+                    SRC_URL_PREFIX,
+                    new_prefix
+                )
+                logging.debug(
+                    "Updating URL from '%s' to '%s'",
+                    version['url'],
+                    new_url
+                )
+                version['url'] = new_url
     else:
-        logging.info("Refraining from updating URL prefix.")
+        logging.info("Refraining from updating database URLs.")
 
 
 def main():
@@ -255,7 +259,7 @@ def main():
     # Optionally, download the latest version
     download_version(latest_version, args.download_latest_db)
     # Optionally, rewrite the database URL
-    rewrite_version_url(latest_version, args.url_prefix)
+    rewrite_urls(listing, args.url_prefix)
     # Optionally, output a minimal listing.json
     output_listing_json(
         args.output,
