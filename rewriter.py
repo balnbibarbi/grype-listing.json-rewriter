@@ -131,7 +131,11 @@ def load_listing_json(input_url):
         (latest_version_key, latest_version) = find_latest_version(
             listing
         )
-        logging.debug("Latest version: %s %s", latest_version_key, latest_version)
+        logging.debug(
+            "Latest version: %s %s",
+            latest_version_key,
+            latest_version
+        )
         # Find the latest revision in the latest version
         (
             latest_revision_build_date,
