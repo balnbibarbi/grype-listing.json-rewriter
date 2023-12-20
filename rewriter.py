@@ -138,6 +138,23 @@ def load_listing_json(input_url):
         return (latest_version_key, latest_revision)
 
 
+def rewrite_revision_url(revision, new_prefix):
+    """
+    Replace the Anchore URL prefix on the given revision's
+    database URL with the given URL prefix.
+    """
+    new_url = revision['url'].replace(
+        SRC_URL_PREFIX,
+        new_prefix
+    )
+    logging.debug(
+        "Updating URL prefix from '%s' to '%s'",
+        revision['url'],
+        new_url
+    )
+    revision['url'] = new_url
+
+
 def main():
     """
     Application entrypoint.
@@ -195,18 +212,9 @@ def main():
         logging.info("Refraining from downloading latest database.")
     # Optionally, output a minimal listing.json
     if args.output:
+        # Optionally, rewrite the database URL
         if args.urlprefix:
-            # Optionally, rewrite the database URL
-            new_url = latest_revision['url'].replace(
-                SRC_URL_PREFIX,
-                args.urlprefix
-            )
-            logging.debug(
-                "Updating URL prefix from '%s' to '%s'",
-                latest_revision['url'],
-                new_url
-            )
-            latest_revision['url'] = new_url
+            rewrite_revision_url(latest_revision, args.urlprefix)
         else:
             logging.info("Refraining from updating URL prefix.")
         output_listing_json(args.output, latest_version_key, latest_revision)
