@@ -54,7 +54,7 @@ def find_latest_revision(version):
         ):
             latest_revision_built_date = this_revision_built_date
             latest_revision = this_revision
-    return latest_revision
+    return (latest_revision_built_date, latest_revision)
 
 
 def magic_open(filename, mode):
@@ -86,6 +86,32 @@ def download(url, filename):
         req = requests.get(url, timeout=HTTP_TIMEOUT_MAX)
         req.raise_for_status()
         outfh.write(req.content)
+
+
+def download_revision(revision, output_dir):
+    """
+    Download a specific revision of a vulnerability db.
+    """
+    filename = os.path.join(
+        output_dir,
+        revision['url'].rsplit('/', 1)[-1]
+    )
+    download(revision['url'], filename)
+
+
+def output_listing_json(file_name, latest_version_key, latest_revision):
+    """
+    Output a Grype style listing.json file.
+    """
+    logging.info(
+        "Outputting new listing.json to '%s'.", file_name
+    )
+    with magic_open(file_name, "w") as output_file:
+        print(json.dumps({
+            'available': {
+                latest_version_key: [latest_revision]
+            }
+        }), file=output_file)
 
 
 def main():
@@ -122,13 +148,6 @@ def main():
         type=str
     )
     parser.add_argument(
-        "-r",
-        "--rewrite-listing-json",
-        help="Output a modified listing.json",
-        default=True,
-        type=bool
-    )
-    parser.add_argument(
         "-v",
         "--verbose",
         help="Output debugging messages",
@@ -141,32 +160,32 @@ def main():
     else:
         logging.basicConfig(level=logging.INFO)
     with magic_open(args.input, "r") as input_file:
-        with magic_open(args.output, "w") as output_file:
-            # Load the listing.json list of vulnerability database versions
-            listing = json.load(input_file)
-            versions = listing['available']
-            # Find the latest version
-            (latest_version_key, latest_version) = find_latest_version(
-                versions
-            )
-            logging.debug("Latest version: %s %s", latest_version_key, latest_version)
-            # Find the latest revision in the latest version
-            latest_revision = find_latest_revision(latest_version)
-            logging.info(
-                "Latest revision is %s",
-                parse_iso8601(latest_revision['built'])
-            )
-            # Optionally, download the latest revision
-            if args.download_latest_db:
-                filename = os.path.join(
-                    args.download_latest_db,
-                    latest_revision['url'].rsplit('/', 1)[-1]
-                )
-                download(latest_revision['url'], filename)
-            else:
-                logging.info("Refraining from downloading latest database.")
-            # Optionally, rewrite the URL prefix in listing.json
+        # Load the listing.json list of vulnerability database versions
+        listing = json.load(input_file)
+        versions = listing['available']
+        # Find the latest version
+        (latest_version_key, latest_version) = find_latest_version(
+            versions
+        )
+        logging.debug("Latest version: %s %s", latest_version_key, latest_version)
+        # Find the latest revision in the latest version
+        (
+            latest_revision_build_date,
+            latest_revision
+        ) = find_latest_revision(latest_version)
+        logging.info(
+            "Latest revision is %s",
+            latest_revision_build_date
+        )
+        # Optionally, download the latest revision
+        if args.download_latest_db:
+            download_revision(latest_revision, args.download_latest_db)
+        else:
+            logging.info("Refraining from downloading latest database.")
+        # Optionally, output a rewritten minimal listing.json
+        if args.output:
             if args.urlprefix:
+                # Optionally, rewrite the URL prefix in listing.json
                 new_url = latest_revision['url'].replace(
                     SRC_URL_PREFIX,
                     args.urlprefix
@@ -179,18 +198,9 @@ def main():
                 latest_revision['url'] = new_url
             else:
                 logging.info("Refraining from updating URL prefix.")
-            # Optionally, output a rewritten minimal listing.json
-            if args.rewrite_listing_json:
-                logging.info(
-                    "Outputting new listing.json to '%s'.", args.output
-                )
-                print(json.dumps({
-                    'available': {
-                        latest_version_key: [latest_revision]
-                    }
-                }), file=output_file)
-            else:
-                logging.info("Refraining from outputting new listing.json.")
+            output_listing_json(args.output, latest_version_key, latest_revision)
+        else:
+            logging.info("Refraining from outputting new listing.json.")
     return 0
 
 
