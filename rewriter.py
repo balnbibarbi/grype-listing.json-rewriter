@@ -93,11 +93,14 @@ def download_revision(revision, output_dir):
     """
     Download a specific revision of a vulnerability db.
     """
-    filename = os.path.join(
-        output_dir,
-        revision['url'].rsplit('/', 1)[-1]
-    )
-    download(revision['url'], filename)
+    if output_dir:
+        filename = os.path.join(
+            output_dir,
+            revision['url'].rsplit('/', 1)[-1]
+        )
+        download(revision['url'], filename)
+    else:
+        logging.info("Refraining from downloading latest database.")
 
 
 def output_listing_json(file_name, latest_version_key, latest_revision):
@@ -107,12 +110,15 @@ def output_listing_json(file_name, latest_version_key, latest_revision):
     logging.info(
         "Outputting new listing.json to '%s'.", file_name
     )
-    with magic_open(file_name, "w") as output_file:
-        print(json.dumps({
-            'available': {
-                latest_version_key: [latest_revision]
-            }
-        }), file=output_file)
+    if file_name:
+        with magic_open(file_name, "w") as output_file:
+            print(json.dumps({
+                'available': {
+                    latest_version_key: [latest_revision]
+                }
+            }), file=output_file)
+    else:
+        logging.info("Refraining from outputting new listing.json.")
 
 
 def load_listing_json(input_url):
@@ -143,16 +149,24 @@ def rewrite_revision_url(revision, new_prefix):
     Replace the Anchore URL prefix on the given revision's
     database URL with the given URL prefix.
     """
-    new_url = revision['url'].replace(
-        SRC_URL_PREFIX,
-        new_prefix
-    )
-    logging.debug(
-        "Updating URL prefix from '%s' to '%s'",
-        revision['url'],
-        new_url
-    )
-    revision['url'] = new_url
+    if new_prefix:
+        logging.debug(
+            "Replacing '%s' with '%s' in URL",
+            SRC_URL_PREFIX,
+            new_prefix
+        )
+        new_url = revision['url'].replace(
+            SRC_URL_PREFIX,
+            new_prefix
+        )
+        logging.debug(
+            "Updating URL from '%s' to '%s'",
+            revision['url'],
+            new_url
+        )
+        revision['url'] = new_url
+    else:
+        logging.info("Refraining from updating URL prefix.")
 
 
 def main():
@@ -206,20 +220,11 @@ def main():
         latest_revision
     ) = load_listing_json(args.input)
     # Optionally, download the latest revision
-    if args.download_latest_db:
-        download_revision(latest_revision, args.download_latest_db)
-    else:
-        logging.info("Refraining from downloading latest database.")
+    download_revision(latest_revision, args.download_latest_db)
+    # Optionally, rewrite the database URL
+    rewrite_revision_url(latest_revision, args.urlprefix)
     # Optionally, output a minimal listing.json
-    if args.output:
-        # Optionally, rewrite the database URL
-        if args.urlprefix:
-            rewrite_revision_url(latest_revision, args.urlprefix)
-        else:
-            logging.info("Refraining from updating URL prefix.")
-        output_listing_json(args.output, latest_version_key, latest_revision)
-    else:
-        logging.info("Refraining from outputting new listing.json.")
+    output_listing_json(args.output, latest_version_key, latest_revision)
     return 0
 
 
