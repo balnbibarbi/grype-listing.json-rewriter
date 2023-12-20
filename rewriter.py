@@ -18,6 +18,7 @@ import requests
 
 
 SRC_URL_PREFIX = 'https://toolbox-data.anchore.io/grype/databases/'
+HTTP_TIMEOUT_MAX = 300
 
 
 def parse_iso8601(iso8601_datetime):
@@ -71,7 +72,7 @@ def magic_open(filename, mode):
     if mode == "r" and (
         filename.startswith("http://") or filename.startswith("https://")
     ):
-        req = requests.get(filename)
+        req = requests.get(filename, timeout=HTTP_TIMEOUT_MAX)
         req.raise_for_status()
         return io.StringIO(req.text)
     return open(filename, mode, encoding="utf-8")
@@ -83,7 +84,7 @@ def download(url, filename):
     """
     logging.info("Downloading '%s' to '%s'", url, filename)
     with (open(filename, "wb")) as outfh:
-        req = requests.get(url)
+        req = requests.get(url, timeout=HTTP_TIMEOUT_MAX)
         req.raise_for_status()
         outfh.write(req.content)
 
