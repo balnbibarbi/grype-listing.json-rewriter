@@ -142,16 +142,20 @@ def main():
         logging.basicConfig(level=logging.INFO)
     with magic_open(args.input, "r") as input_file:
         with magic_open(args.output, "w") as output_file:
+            # Load the listing.json list of vulnerability database versions
             listing = json.load(input_file)
             versions = listing['available']
+            # Find the latest version
             (latest_version_key, latest_version) = find_latest_version(
                 versions
             )
+            # Find the latest revision in the latest version
             latest_revision = find_latest_revision(latest_version)
             logging.info(
                 "Latest revision is %s",
                 parse_iso8601(latest_revision['built'])
             )
+            # Optionally, download the latest revision
             if args.download_latest_db:
                 filename = os.path.join(
                     args.download_latest_db,
@@ -160,6 +164,7 @@ def main():
                 download(latest_revision['url'], filename)
             else:
                 logging.info("Refraining from downloading latest database.")
+            # Optionally, rewrite the URL prefix in listing.json
             if args.urlprefix:
                 new_url = latest_revision['url'].replace(
                     SRC_URL_PREFIX,
@@ -173,6 +178,7 @@ def main():
                 latest_revision['url'] = new_url
             else:
                 logging.info("Refraining from updating URL prefix.")
+            # Optionally, output a rewritten minimal listing.json
             if args.rewrite_listing_json:
                 logging.info(
                     "Outputting new listing.json to '%s'.", args.output
@@ -184,8 +190,8 @@ def main():
                 }), file=output_file)
             else:
                 logging.info("Refraining from outputting new listing.json.")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
-    sys.exit(0)
+    sys.exit(main())
