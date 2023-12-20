@@ -117,7 +117,9 @@ def download_version(version, output_dir):
         logging.info("Refraining from downloading latest database.")
 
 
-def output_listing_json(file_name, minimal, listing, latest_schema_key, latest_schema):
+def output_listing_json(
+    file_name, minimal, listing, latest_schema_key, latest_schema
+):
     """
     Output a Grype style listing.json file.
     """
