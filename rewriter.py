@@ -106,14 +106,26 @@ def download_version(version, output_dir):
     """
     Download a specific version of a vulnerability db.
     """
+    filename = os.path.join(
+        output_dir,
+        version['url'].rsplit('/', 1)[-1]
+    )
+    download(version['url'], filename)
+
+
+def download_dbs(listing, latest_version, output_dir, minimal):
+    """
+    Optionally, download all, or only the latest, vulnerability database(s).
+    """
     if output_dir:
-        filename = os.path.join(
-            output_dir,
-            version['url'].rsplit('/', 1)[-1]
-        )
-        download(version['url'], filename)
+        if minimal:
+            download_version(latest_version, output_dir)
+        else:
+            for schema in listing['available'].values():
+                for version in schema:
+                    download_version(version, output_dir)
     else:
-        logging.info("Refraining from downloading latest database.")
+        logging.info("Refraining from downloading database.")
 
 
 def output_listing_json(
@@ -204,37 +216,40 @@ def main():
     """
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-u",
-        "--url-prefix",
-        help="New URL prefix to replace existing prefix",
+        "-d",
+        "--download-dbs",
+        help="""
+        Download vulnerability database file(s) to this directory.
+        If not specified, do not download database files.
+        """,
         default="",
         type=str
     )
     parser.add_argument(
         "-i",
         "--input",
-        help="Input listing.json file or URL",
-        default="-",
-        type=str
-    )
-    parser.add_argument(
-        "-o",
-        "--output",
-        help="Output listing.json file",
+        help="Read input listing.json from this file or URL",
         default="-",
         type=str
     )
     parser.add_argument(
         "-m",
         "--minimal",
-        help="Only output latest database schema and version",
+        help="Only output/download latest database schema and version",
         default=True,
         type=str2bool
     )
     parser.add_argument(
-        "-d",
-        "--download-latest-db",
-        help="Download the latest database file to this directory",
+        "-o",
+        "--output",
+        help="Output a listing.json file to this path",
+        default="-",
+        type=str
+    )
+    parser.add_argument(
+        "-u",
+        "--url-prefix",
+        help="New URL prefix to replace existing prefix",
         default="",
         type=str
     )
@@ -257,7 +272,7 @@ def main():
         latest_version
     ) = load_listing_json(args.input)
     # Optionally, download the latest version
-    download_version(latest_version, args.download_latest_db)
+    download_dbs(listing, latest_version, args.download_dbs, args.minimal)
     # Optionally, rewrite the database URL
     rewrite_urls(listing, args.url_prefix)
     # Optionally, output a minimal listing.json

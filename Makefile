@@ -6,6 +6,7 @@ NEW_URL_PREFIX=http://example.com/databases/
 DB_OUTPUT_DIR=/tmp/
 DOCKER_TAG=$(DOCKER_HUB_USERNAME)/$(PROJECT_NAME)
 MINIMAL=true
+VERBOSE=false
 
 .PHONY: all
 all: run
@@ -13,11 +14,12 @@ all: run
 .PHONY: run
 run: build
 	docker run -i \
+		-e "DB_OUTPUT_DIR=$(DB_OUTPUT_DIR)" \
 		-e "LISTING_JSON_URL=$(LISTING_JSON_URL)" \
+		-e "MINIMAL=$(MINIMAL)" \
 		-e "OUTPUT_LISTING_JSON=$(OUTPUT_LISTING_JSON)" \
 		-e "NEW_URL_PREFIX=$(NEW_URL_PREFIX)" \
-		-e "DB_OUTPUT_DIR=$(DB_OUTPUT_DIR)" \
-		-e "MINIMAL=$(MINIMAL)" \
+		-e "VERBOSE=$(VERBOSE)" \
 		-v "/tmp:/tmp" \
 		"$(DOCKER_TAG)"
 
@@ -32,8 +34,9 @@ push: build
 .PHONY: local
 local:
 	./rewriter.py \
-	--input              "$(LISTING_JSON_URL)" \
-	--output             "$(OUTPUT_LISTING_JSON)" \
-	--url-prefix         "$(NEW_URL_PREFIX)" \
-	--download-latest-db "$(DB_OUTPUT_DIR)" \
-	--minimal            "$(MINIMAL)"
+	--download-dbs "$(DB_OUTPUT_DIR)" \
+	--input        "$(LISTING_JSON_URL)" \
+	--minimal      "$(MINIMAL)" \
+	--output       "$(OUTPUT_LISTING_JSON)" \
+	--url-prefix   "$(NEW_URL_PREFIX)" \
+	--verbose      "$(VERBOSE)"
