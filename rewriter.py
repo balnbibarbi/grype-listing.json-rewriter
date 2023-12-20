@@ -258,7 +258,13 @@ def main():
     # Optionally, rewrite the database URL
     rewrite_version_url(latest_version, args.url_prefix)
     # Optionally, output a minimal listing.json
-    output_listing_json(args.output, args.minimal, listing, latest_schema_key, latest_version)
+    output_listing_json(
+        args.output,
+        args.minimal,
+        listing,
+        latest_schema_key,
+        latest_version
+    )
     return 0
 
 
