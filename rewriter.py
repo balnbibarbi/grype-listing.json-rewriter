@@ -3,8 +3,8 @@
 
 """
 Download and rewrite Grype listing.json files.
-These files contain a list of vulberability database versions.
-Each version in turn contains a list of vulnerability database files.
+These files contain a list of vulnerability database schemas.
+Each schema in turn contains a list of vulnerability database versions.
 """
 
 import os
@@ -29,33 +29,33 @@ def parse_iso8601(iso8601_datetime):
     return datetime.strptime(iso8601_datetime, "%Y-%m-%dT%H:%M:%S%z")
 
 
-def find_latest_version(listing):
+def find_latest_schema(listing):
     """
-    Find the latest of the versions in the given listing.json file.
+    Find the latest of the schemas in the given listing.json file.
     """
-    versions = listing['available']
-    version_keys = list(versions.keys())
-    version_keys.sort()
-    latest_version_key = version_keys[-1]
-    latest_version = versions[latest_version_key]
-    return (latest_version_key, latest_version)
+    schemas = listing['available']
+    schema_keys = list(schemas.keys())
+    schema_keys.sort()
+    latest_schema_key = schema_keys[-1]
+    latest_schema = schemas[latest_schema_key]
+    return (latest_schema_key, latest_schema)
 
 
-def find_latest_revision(version):
+def find_latest_version(schema):
     """
-    Find the latest of the revisions in the given version.
+    Find the latest of the versions in the given schema.
     """
-    latest_revision_built_date = None
-    latest_revision = None
-    for this_revision in version:
-        this_revision_built_date = parse_iso8601(this_revision['built'])
+    latest_version_built_date = None
+    latest_version = None
+    for this_version in schema:
+        this_version_built_date = parse_iso8601(this_version['built'])
         if (
-            latest_revision_built_date is None or
-            this_revision_built_date > latest_revision_built_date
+            latest_version_built_date is None or
+            this_version_built_date > latest_version_built_date
         ):
-            latest_revision_built_date = this_revision_built_date
-            latest_revision = this_revision
-    return (latest_revision_built_date, latest_revision)
+            latest_version_built_date = this_version_built_date
+            latest_version = this_version
+    return (latest_version_built_date, latest_version)
 
 
 def magic_open(filename, mode):
@@ -89,21 +89,21 @@ def download(url, filename):
         outfh.write(req.content)
 
 
-def download_revision(revision, output_dir):
+def download_version(version, output_dir):
     """
-    Download a specific revision of a vulnerability db.
+    Download a specific version of a vulnerability db.
     """
     if output_dir:
         filename = os.path.join(
             output_dir,
-            revision['url'].rsplit('/', 1)[-1]
+            version['url'].rsplit('/', 1)[-1]
         )
-        download(revision['url'], filename)
+        download(version['url'], filename)
     else:
         logging.info("Refraining from downloading latest database.")
 
 
-def output_listing_json(file_name, latest_version_key, latest_revision):
+def output_listing_json(file_name, latest_schema_key, latest_schema):
     """
     Output a Grype style listing.json file.
     """
@@ -112,11 +112,15 @@ def output_listing_json(file_name, latest_version_key, latest_revision):
     )
     if file_name:
         with magic_open(file_name, "w") as output_file:
-            print(json.dumps({
-                'available': {
-                    latest_version_key: [latest_revision]
+            print(json.dumps(
+                {
+                    'available': {
+                        latest_schema_key: [
+                            latest_schema
+                        ]
+                    }
                 }
-            }), file=output_file)
+            ), file=output_file)
     else:
         logging.info("Refraining from outputting new listing.json.")
 
@@ -127,30 +131,30 @@ def load_listing_json(input_url):
     """
     with magic_open(input_url, "r") as input_file:
         listing = json.load(input_file)
-        # Find the latest version
-        (latest_version_key, latest_version) = find_latest_version(
+        # Find the latest schema
+        (latest_schema_key, latest_schema) = find_latest_schema(
             listing
         )
         logging.debug(
-            "Latest version: %s %s",
-            latest_version_key,
-            latest_version
+            "Latest schema: %s %s",
+            latest_schema_key,
+            latest_schema
         )
-        # Find the latest revision in the latest version
+        # Find the latest version in the latest schema
         (
-            latest_revision_build_date,
-            latest_revision
-        ) = find_latest_revision(latest_version)
+            latest_version_build_date,
+            latest_version
+        ) = find_latest_version(latest_schema)
         logging.info(
-            "Latest revision is %s",
-            latest_revision_build_date
+            "Latest version is %s",
+            latest_version_build_date
         )
-        return (latest_version_key, latest_revision)
+        return (latest_schema_key, latest_version)
 
 
-def rewrite_revision_url(revision, new_prefix):
+def rewrite_version_url(version, new_prefix):
     """
-    Replace the Anchore URL prefix on the given revision's
+    Replace the Anchore URL prefix on the given version's
     database URL with the given URL prefix.
     """
     if new_prefix:
@@ -159,16 +163,16 @@ def rewrite_revision_url(revision, new_prefix):
             SRC_URL_PREFIX,
             new_prefix
         )
-        new_url = revision['url'].replace(
+        new_url = version['url'].replace(
             SRC_URL_PREFIX,
             new_prefix
         )
         logging.debug(
             "Updating URL from '%s' to '%s'",
-            revision['url'],
+            version['url'],
             new_url
         )
-        revision['url'] = new_url
+        version['url'] = new_url
     else:
         logging.info("Refraining from updating URL prefix.")
 
@@ -218,17 +222,17 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.INFO)
-    # Load the listing.json list of vulnerability database versions
+    # Load the listing.json list of vulnerability database schemas
     (
-        latest_version_key,
-        latest_revision
+        latest_schema_key,
+        latest_version
     ) = load_listing_json(args.input)
-    # Optionally, download the latest revision
-    download_revision(latest_revision, args.download_latest_db)
+    # Optionally, download the latest version
+    download_version(latest_version, args.download_latest_db)
     # Optionally, rewrite the database URL
-    rewrite_revision_url(latest_revision, args.urlprefix)
+    rewrite_version_url(latest_version, args.urlprefix)
     # Optionally, output a minimal listing.json
-    output_listing_json(args.output, latest_version_key, latest_revision)
+    output_listing_json(args.output, latest_schema_key, latest_version)
     return 0
 
 
