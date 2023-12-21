@@ -7,3 +7,4 @@ tests
 tests.py
 statefulset.yaml
 pylint.yaml
+pre-commit-hook
