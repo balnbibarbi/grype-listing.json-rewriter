@@ -5,3 +5,5 @@ Makefile
 README.md
 tests
 tests.py
+statefulset.yaml
+pylint.yaml
