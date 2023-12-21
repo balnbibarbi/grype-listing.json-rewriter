@@ -11,3 +11,4 @@ pre-commit-hook
 .github
 .git
 .vscode
+.dockerignore
