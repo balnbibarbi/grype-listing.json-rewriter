@@ -1,2 +1,3 @@
 /.vscode
 /listing.json
+*.pyc
