@@ -52,6 +52,12 @@ class Listing:
         else:
             logging.info("Refraining from downloading database.")
 
+    def json(self):
+        """
+        Return the Grype JSON representation of this listing.
+        """
+        return json.dumps(self.listing)
+
     def save(self, file_name):
         """
         Output a Grype style listing.json file.
@@ -62,7 +68,7 @@ class Listing:
         )
         if file_name:
             with magic_open(file_name, "w") as output_file:
-                print(json.dumps(self.listing), file=output_file)
+                print(self.json(), file=output_file)
         else:
             logging.info("Refraining from outputting new listing.json.")
 
@@ -96,7 +102,7 @@ class Listing:
 
     def minimise(self):
         """
-        Minimise a listing.json, so it contains only the latest database
+        Minimise this listing, so it contains only the latest database
         schema, and only the latest vulnerability database in that schema.
         """
         # Find the latest schema

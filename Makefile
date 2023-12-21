@@ -40,3 +40,7 @@ local:
 	--output       "$(OUTPUT_LISTING_JSON)" \
 	--url-prefix   "$(NEW_URL_PREFIX)" \
 	--verbose      "$(VERBOSE)"
+
+.PHONY: test
+test:
+	./tests.py
