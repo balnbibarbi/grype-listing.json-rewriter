@@ -47,7 +47,7 @@ fi
 
 # Check Python code style
 pycodestyle *.py
-pylint *.py
+pylint --recursive=y .
 
 make test
 
