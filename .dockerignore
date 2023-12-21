@@ -8,3 +8,6 @@ tests.py
 statefulset.yaml
 pylint.yaml
 pre-commit-hook
+.github
+.git
+.vscode
