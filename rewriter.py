@@ -142,36 +142,45 @@ def output_listing_json(
         logging.info("Refraining from outputting new listing.json.")
 
 
+def minimise_listing(listing):
+    """
+    Minimise a listing.json, so it contains only the latest database schema,
+    and only the latest vulnerability database in that schema.
+    """
+    # Find the latest schema
+    (latest_schema_key, latest_schema) = find_latest_schema(
+        listing
+    )
+    logging.debug(
+        "Latest schema: %s %s",
+        latest_schema_key,
+        latest_schema
+    )
+    # Find the latest version in the latest schema
+    (
+        latest_version_build_date,
+        latest_version
+    ) = find_latest_version(latest_schema)
+    logging.info(
+        "Latest version is %s",
+        latest_version_build_date
+    )
+    listing['available'] = {
+        latest_schema_key: [
+            latest_version
+        ]
+    }
+    return listing
+
+
 def load_listing_json(input_url, minimal):
     """
     Load and parse a Grype style listing.json file.
     """
     with magic_open(input_url, "r") as input_file:
         listing = json.load(input_file)
-        # Find the latest schema
-        (latest_schema_key, latest_schema) = find_latest_schema(
-            listing
-        )
-        logging.debug(
-            "Latest schema: %s %s",
-            latest_schema_key,
-            latest_schema
-        )
-        # Find the latest version in the latest schema
-        (
-            latest_version_build_date,
-            latest_version
-        ) = find_latest_version(latest_schema)
-        logging.info(
-            "Latest version is %s",
-            latest_version_build_date
-        )
         if minimal:
-            listing['available'] = {
-                latest_schema_key: [
-                    latest_version
-                ]
-            }
+            minimise_listing(listing)
         return listing
 
 
