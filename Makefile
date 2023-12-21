@@ -9,7 +9,7 @@ MINIMAL=true
 VERBOSE=false
 
 .PHONY: all
-all: run
+all: test local run
 
 .PHONY: run
 run: build
