@@ -10,12 +10,14 @@ Each schema in turn contains a list of vulnerability database versions.
 import sys
 import logging
 import argparse
-from listing import *
+from listing import (
+    load_listing_json, download_dbs, rewrite_urls, output_listing_json
+)
 
 
 def str2bool(v):
     """
-    Convert a human-readable strign to a boolean value.
+    Convert a human-readable string to a boolean value.
     """
     if isinstance(v, bool):
         return v
