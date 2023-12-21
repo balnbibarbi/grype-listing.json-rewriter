@@ -2,7 +2,7 @@
 
 Utility to ease offline use of Grype.
 
-# Usage
+## Usage
 
 ```bash
 ./rewriter.py \
@@ -15,6 +15,7 @@ Utility to ease offline use of Grype.
 ```
 
 This will:
+
 - Download the latest Grype vulnerability database listing
 - Download the latest Grype vulnerability database referenced in the listing
 - Output a modified vulnerability database listing, referencing only the latest vulnerability database
