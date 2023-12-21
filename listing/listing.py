@@ -18,10 +18,10 @@ class Listing:
     An Anchore Grype vulnerability database listing.json
     """
 
-    def __init__(self, input_url, minimal) -> None:
+    def __init__(self, input_url, minimal):
         self.listing = self._load_listing_json(input_url)
         if minimal:
-            self.minimise_listing()
+            self.minimise()
 
     @staticmethod
     def _download_version(version, output_dir):
@@ -52,7 +52,7 @@ class Listing:
         else:
             logging.info("Refraining from downloading database.")
 
-    def output_listing_json(self, file_name):
+    def save(self, file_name):
         """
         Output a Grype style listing.json file.
         """
@@ -94,7 +94,7 @@ class Listing:
                 latest_version = this_version
         return (latest_version_built_date, latest_version)
 
-    def minimise_listing(self):
+    def minimise(self):
         """
         Minimise a listing.json, so it contains only the latest database
         schema, and only the latest vulnerability database in that schema.

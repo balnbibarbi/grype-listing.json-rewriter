@@ -88,7 +88,7 @@ def main():
     # Optionally, rewrite the database URLs in the listing
     listing.rewrite_urls(args.url_prefix)
     # Optionally, output a listing.json
-    listing.output_listing_json(args.output)
+    listing.save(args.output)
     return 0
 
 
