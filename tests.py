@@ -30,7 +30,7 @@ class TestListing(unittest.TestCase):
         """
         Test round-tripping the listing.
         """
-        actual_listing = Listing("tests/input.json", False)
+        actual_listing = Listing("tests/input.json")
         with open(
             "tests/expected-output/roundtrip.json",
             "r",
@@ -43,7 +43,7 @@ class TestListing(unittest.TestCase):
         """
         Test minimising the listing.
         """
-        actual_listing = Listing("tests/input.json", True)
+        actual_listing = Listing("tests/input.json")
         actual_listing.minimise()
         with open(
             "tests/expected-output/minimised.json",
@@ -60,7 +60,7 @@ class TestListing(unittest.TestCase):
         """
         Test rewriting the listing.
         """
-        actual_listing = Listing("tests/input.json", False)
+        actual_listing = Listing("tests/input.json")
         actual_listing.rewrite_urls('http://example.com/')
         with open(
             "tests/expected-output/rewritten.json",
@@ -79,7 +79,7 @@ class TestListing(unittest.TestCase):
         """
         Test minimising and rewriting the listing.
         """
-        actual_listing = Listing("tests/input.json", True)
+        actual_listing = Listing("tests/input.json")
         actual_listing.minimise()
         actual_listing.rewrite_urls('http://example.com/')
         with open(

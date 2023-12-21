@@ -82,7 +82,10 @@ def main():
     else:
         logging.basicConfig(level=logging.INFO)
     # Load the listing.json list of vulnerability database schemas
-    listing = Listing(args.input, args.minimal)
+    listing = Listing(args.input)
+    # Optionally, subset the listing to only the latest schema and version
+    if args.minimal:
+        listing.minimise()
     # Optionally, download vulnerability database(s)
     listing.download_dbs(args.download_dbs)
     # Optionally, rewrite the database URLs in the listing

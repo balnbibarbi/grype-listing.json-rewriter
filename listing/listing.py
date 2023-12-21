@@ -18,10 +18,8 @@ class Listing:
     An Anchore Grype vulnerability database listing.json
     """
 
-    def __init__(self, input_url, minimal):
+    def __init__(self, input_url):
         self.listing = self._load_listing_json(input_url)
-        if minimal:
-            self.minimise()
 
     @staticmethod
     def _download_version(version, output_dir):
