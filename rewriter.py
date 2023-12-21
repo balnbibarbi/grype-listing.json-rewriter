@@ -10,9 +10,7 @@ Each schema in turn contains a list of vulnerability database versions.
 import sys
 import logging
 import argparse
-from listing import (
-    load_listing_json, download_dbs, rewrite_urls, output_listing_json
-)
+from listing import Listing
 
 
 def str2bool(v):
@@ -84,16 +82,13 @@ def main():
     else:
         logging.basicConfig(level=logging.INFO)
     # Load the listing.json list of vulnerability database schemas
-    listing = load_listing_json(args.input, args.minimal)
+    listing = Listing(args.input, args.minimal)
     # Optionally, download vulnerability database(s)
-    download_dbs(listing, args.download_dbs)
+    listing.download_dbs(args.download_dbs)
     # Optionally, rewrite the database URLs in the listing
-    rewrite_urls(listing, args.url_prefix)
+    listing.rewrite_urls(args.url_prefix)
     # Optionally, output a listing.json
-    output_listing_json(
-        args.output,
-        listing
-    )
+    listing.output_listing_json(args.output)
     return 0
 
 
