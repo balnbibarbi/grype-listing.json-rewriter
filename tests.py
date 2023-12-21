@@ -12,7 +12,6 @@ from listing import Listing
 
 class TestListing(unittest.TestCase):
 
-
     """
     Test the Listing class.
     """
