@@ -51,7 +51,7 @@ test:
 k8s:
 	if kubectl get ns "$(K8S_NS)" > /dev/null 2>&1 ; then true ; else kubectl create ns "$(K8S_NS)" ; fi
 	kubectl apply -f statefulset.yaml -n "$(K8S_NS)"
-	for attempt in `seq 1 $(MAX_LB_IP_ATTEMPTS)` ; do \
+	for attempt in `seq 1 "$(MAX_LB_IP_ATTEMPTS)"` ; do \
 		ip=`kubectl get svc -n grype-db "$(K8S_NS)" -o=jsonpath='{.status.loadBalancer.ingress[0].ip}'`; \
 		if test -n "$$ip" ; then \
 			break ; \
