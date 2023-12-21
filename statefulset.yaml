@@ -1,0 +1,91 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: grype-db
+  namespace: grype-db
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: grype-db
+  namespace: grype-db
+  labels:
+    app: grype-db
+    tier: web
+spec:
+  serviceName: grype-db
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grype-db
+      tier: web
+  template:
+    metadata:
+      labels:
+        app: grype-db
+        tier: web
+    spec:
+      initContainers:
+      - name: download
+        image: bingbangboo/grype-listing.json-rewriter
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: "0.1"
+            memory: "200Mi"
+        env:
+          - name: DB_OUTPUT_DIR
+            value: "/databases"
+          - name: LISTING_JSON_URL
+            value: "https://toolbox-data.anchore.io/grype/databases/listing.json"
+          - name: MINIMAL
+            value: "true"
+          - name: OUTPUT_LISTING_JSON
+            value: "/databases/listing.json"
+          - name: NEW_URL_PREFIX
+            value: http://grype-db/
+          - name: VERBOSE
+            value: "false"
+        volumeMounts:
+        - name: databases
+          mountPath: /databases
+          readOnly: false
+      containers:
+      - name: grype-db
+        image: nginx
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: "0.1"
+            memory: "200Mi"
+        volumeMounts:
+        - name: databases
+          mountPath: /usr/share/nginx/html
+          readOnly: true
+      serviceAccount: grype-db
+      automountServiceAccountToken: false
+  volumeClaimTemplates:
+  - metadata:
+      name: databases
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grype-db
+  namespace: grype-db
+  labels:
+    app: grype-db
+    tier: web
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    name: web
+  selector:
+    app: grype-db
+    tier: web
