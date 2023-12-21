@@ -18,6 +18,9 @@ class TestListing(unittest.TestCase):
 
     @staticmethod
     def nuke_urls(*args):
+        """
+        Set all DB URLs the same, to ignore intended differences.
+        """
         for data in args:
             for schema in data.values():
                 for version in schema:
