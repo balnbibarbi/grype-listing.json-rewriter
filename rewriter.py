@@ -113,50 +113,36 @@ def download_version(version, output_dir):
     download(version['url'], filename)
 
 
-def download_dbs(listing, latest_version, output_dir, minimal):
+def download_dbs(listing, output_dir):
     """
     Optionally, download all, or only the latest, vulnerability database(s).
     """
     if output_dir:
-        if minimal:
-            download_version(latest_version, output_dir)
-        else:
-            for schema in listing['available'].values():
-                for version in schema:
-                    download_version(version, output_dir)
+        for schema in listing['available'].values():
+            for version in schema:
+                download_version(version, output_dir)
     else:
         logging.info("Refraining from downloading database.")
 
 
 def output_listing_json(
-    file_name, minimal, listing, latest_schema_key, latest_schema
+    file_name, listing
 ):
     """
     Output a Grype style listing.json file.
     """
     logging.info(
-        "Outputting %s listing.json to '%s'.",
-        "minimal" if minimal else "full",
+        "Outputting listing.json to '%s'.",
         file_name
     )
     if file_name:
         with magic_open(file_name, "w") as output_file:
-            if minimal:
-                data = {
-                    'available': {
-                        latest_schema_key: [
-                            latest_schema
-                        ]
-                    }
-                }
-            else:
-                data = listing
-            print(json.dumps(data), file=output_file)
+            print(json.dumps(listing), file=output_file)
     else:
         logging.info("Refraining from outputting new listing.json.")
 
 
-def load_listing_json(input_url):
+def load_listing_json(input_url, minimal):
     """
     Load and parse a Grype style listing.json file.
     """
@@ -180,7 +166,13 @@ def load_listing_json(input_url):
             "Latest version is %s",
             latest_version_build_date
         )
-        return (listing, latest_schema_key, latest_version)
+        if minimal:
+            listing['available'] = {
+                latest_schema_key: [
+                    latest_version
+                ]
+            }
+        return listing
 
 
 def rewrite_urls(listing, new_prefix):
@@ -266,22 +258,15 @@ def main():
     else:
         logging.basicConfig(level=logging.INFO)
     # Load the listing.json list of vulnerability database schemas
-    (
-        listing,
-        latest_schema_key,
-        latest_version
-    ) = load_listing_json(args.input)
+    listing = load_listing_json(args.input, args.minimal)
     # Optionally, download vulnerability database(s)
-    download_dbs(listing, latest_version, args.download_dbs, args.minimal)
+    download_dbs(listing, args.download_dbs)
     # Optionally, rewrite the database URLs in the listing
     rewrite_urls(listing, args.url_prefix)
     # Optionally, output a listing.json
     output_listing_json(
         args.output,
-        args.minimal,
-        listing,
-        latest_schema_key,
-        latest_version
+        listing
     )
     return 0
 
