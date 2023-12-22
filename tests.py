@@ -9,6 +9,7 @@ import unittest
 import json
 # pylint: disable=no-name-in-module
 from rewriter.listing.listing import Listing
+from rewriter.server.httpserver import HttpServer
 # pylint: enable=no-name-in-module
 
 
@@ -99,6 +100,35 @@ class TestListing(unittest.TestCase):
                 actual_listing.listing['available']['5'][0],
                 expected_listing['available']['5'][-1]
             )
+
+
+class TestServer(unittest.TestCase):
+
+    """
+    Test the HttpServer class.
+    """
+
+    def setUp(self):
+        """
+        Set up the test by creating an HttpServer instance.
+        """
+        self.server = HttpServer(__name__)
+        self.ctx = self.server.app_context()
+        self.ctx.push()
+        self.client = self.server.test_client()
+
+    def tearDown(self):
+        """
+        Tear down the test.
+        """
+        self.ctx.pop()
+
+    def test_listing_json(self):
+        """
+        Test reading the listing.json catalogue.
+        """
+        response = self.client.get(self.server.url_prefix + "listing.json")
+        self.assertEqual(response.status_code, 200)
 
 
 if __name__ == "__main__":
