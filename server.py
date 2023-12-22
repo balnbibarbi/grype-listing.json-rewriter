@@ -5,8 +5,6 @@ Serve a Grype listing.json and databases over HTTP.
 """
 
 import sys
-import os
-import json
 # pylint: disable=no-name-in-module
 from rewriter.server.httpserver import HttpServer
 # pylint: enable=no-name-in-module
@@ -20,12 +18,7 @@ def serve_listing():
     """
     Serve the listing.json catalogue.
     """
-    with open(
-        os.path.join(app.fs_root, "minimised.json"),
-        "r",
-        encoding='utf-8'
-    ) as filehandle:
-        return json.load(filehandle)
+    return app.listing.json()
 
 
 if __name__ == "__main__":
