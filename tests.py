@@ -7,7 +7,9 @@ Unit tests for the Listing module.
 
 import unittest
 import json
-from listing import Listing
+# pylint: disable=no-name-in-module
+from rewriter.listing.listing import Listing
+# pylint: enable=no-name-in-module
 
 
 class TestListing(unittest.TestCase):

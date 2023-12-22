@@ -10,7 +10,8 @@ Each schema in turn contains a list of vulnerability database versions.
 import sys
 import logging
 import argparse
-from listing import Listing, str2bool
+from rewriter.listing.listing import Listing
+from rewriter.utils import str2bool
 
 
 def main():

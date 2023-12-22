@@ -46,7 +46,7 @@ EOF
 fi
 
 # Check Python code style
-pycodestyle *.py || exit 1
+pycodestyle --exclude=env . || exit 1
 pylint --recursive=y --ignore-patterns env . || exit 1
 
 make test || exit 1

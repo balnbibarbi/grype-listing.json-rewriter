@@ -6,7 +6,7 @@ An Anchore Grype vulnerability database listing.json
 import os
 import json
 import logging
-from .utils import parse_iso8601, magic_open, download
+from ..utils import parse_iso8601, magic_open, download
 
 
 SRC_URL_PREFIX = 'https://toolbox-data.anchore.io/grype/databases/'
