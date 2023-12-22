@@ -10,20 +10,7 @@ Each schema in turn contains a list of vulnerability database versions.
 import sys
 import logging
 import argparse
-from listing import Listing
-
-
-def str2bool(v):
-    """
-    Convert a human-readable string to a boolean value.
-    """
-    if isinstance(v, bool):
-        return v
-    if v.lower() in ('yes', 'true', 't', 'y', '1', 'on', 'enabled'):
-        return True
-    if v.lower() in ('no', 'false', 'f', 'n', '0', 'off', 'disabled'):
-        return False
-    raise argparse.ArgumentTypeError('Boolean value expected')
+from listing import Listing, str2bool
 
 
 def main():

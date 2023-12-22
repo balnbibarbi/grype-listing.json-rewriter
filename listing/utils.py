@@ -13,6 +13,19 @@ import requests
 HTTP_TIMEOUT_MAX = 300
 
 
+def str2bool(v):
+    """
+    Convert a human-readable string to a boolean value.
+    """
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1', 'on', 'enabled'):
+        return True
+    if v.lower() in ('no', 'false', 'f', 'n', '0', 'off', 'disabled'):
+        return False
+    raise ValueError('Boolean value expected')
+
+
 def parse_iso8601(iso8601_datetime):
     """
     Parse an ISO 8601 datetime string in format YYYY-MM-DDThh:mm:ssZ.
