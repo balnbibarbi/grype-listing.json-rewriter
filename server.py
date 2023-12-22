@@ -18,7 +18,26 @@ def serve_listing():
     """
     Serve the listing.json catalogue.
     """
+    if app.listing is None:
+        app.refresh()
+    if app.listing is None:
+        return '{}'
     return app.listing.json()
+
+
+@app.route(app.url_prefix + "refresh")
+def refresh_listing():
+    """
+    Attempt to download a new listing.json from the upstream source.
+    """
+    # pylint: disable=broad-exception-caught
+    try:
+        app.refresh()
+        return ""
+    except Exception as e:
+        print(e, file=sys.stderr)
+        return e
+    # pylint: enable=broad-exception-caught
 
 
 if __name__ == "__main__":
