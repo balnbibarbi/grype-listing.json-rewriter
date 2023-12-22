@@ -12,3 +12,4 @@ pre-commit-hook
 .git
 .vscode
 .dockerignore
+env
