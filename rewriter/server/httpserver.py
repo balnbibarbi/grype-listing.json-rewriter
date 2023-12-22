@@ -6,7 +6,7 @@ A simple HTTP server for a Grype catalogue and database files.
 import sys
 import os
 import requests
-from flask import Flask
+from flask import Flask, request
 # pylint: disable=no-name-in-module
 from rewriter.listing.listing import Listing
 # pylint: enable=no-name-in-module
@@ -63,6 +63,7 @@ class HttpServer(Flask):
                 self.listing = None
         if self.listing is not None:
             self.listing.minimise()
+            self.listing.rewrite_urls(self.url_prefix)
             self.listing.save(self.cache_filename)
         self.add_url_rule(
             self.url_prefix + "listing.json",
@@ -72,6 +73,11 @@ class HttpServer(Flask):
             self.url_prefix + "refresh",
             view_func=self.refresh
         )
+        for db_url in self.listing.db_urls():
+            self.add_url_rule(
+                db_url,
+                view_func=self.download_db
+            )
 
     def refresh(self):
         """
@@ -100,3 +106,10 @@ class HttpServer(Flask):
         if self.listing is None:
             return '{}'
         return self.listing.json()
+
+    def download_db(self):
+        """
+        Serve a vulnerability database.
+        """
+        print(f"In download_db('{request.url}')")
+        return ""

@@ -39,6 +39,14 @@ class Listing:
         """
         return self.listing['available']
 
+    def db_urls(self):
+        """
+        Enumerate over all databse URLs in this listing.
+        """
+        for schema in self.schemas().values():
+            for version in schema:
+                yield version['url']
+
     def download_dbs(self, output_dir):
         """
         Optionally, download all vulnerability databases.

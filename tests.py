@@ -127,8 +127,16 @@ class TestServer(unittest.TestCase):
         """
         Test reading the listing.json catalogue.
         """
-        response = self.client.get(self.server.url_prefix + "listing.json")
-        self.assertEqual(response.status_code, 200)
+        listing_response = self.client.get(
+            self.server.url_prefix + "listing.json"
+        )
+        self.assertEqual(listing_response.status_code, 200)
+        listing_json = json.loads(listing_response.text)
+        for schema in listing_json['available'].values():
+            for version in schema:
+                db_url = version['url']
+                db_response = self.client.get(db_url)
+                self.assertEqual(db_response.status_code, 200)
 
 
 if __name__ == "__main__":
