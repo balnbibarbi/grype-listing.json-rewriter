@@ -30,14 +30,8 @@ def refresh_listing():
     """
     Attempt to download a new listing.json from the upstream source.
     """
-    # pylint: disable=broad-exception-caught
-    try:
-        app.refresh()
-        return ""
-    except Exception as e:
-        print(e, file=sys.stderr)
-        return e
-    # pylint: enable=broad-exception-caught
+    app.refresh()
+    return ""
 
 
 if __name__ == "__main__":
