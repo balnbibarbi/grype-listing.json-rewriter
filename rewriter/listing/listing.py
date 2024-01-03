@@ -9,7 +9,7 @@ import logging
 from ..utils import parse_iso8601, magic_open, download
 
 
-SRC_URL_PREFIX = 'https://toolbox-data.anchore.io/grype/databases/'
+SRC_URL_PREFIX = 'https://toolbox-data.anchore.io/grype/'
 
 
 class Listing:

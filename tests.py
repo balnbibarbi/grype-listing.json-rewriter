@@ -128,7 +128,7 @@ class TestServer(unittest.TestCase):
         Test reading the listing.json catalogue.
         """
         listing_response = self.client.get(
-            self.server.url_prefix + "listing.json"
+            self.server.listing_url()
         )
         self.assertEqual(listing_response.status_code, 200)
         listing_json = json.loads(listing_response.text)
