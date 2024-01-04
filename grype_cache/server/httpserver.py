@@ -9,7 +9,6 @@ from flask import Flask, send_from_directory
 # pylint: disable=no-name-in-module
 from grype_cache.cache.cache import Cache
 # pylint: enable=no-name-in-module
-# pylint: disable=fixme
 from ..utils import str2bool
 
 
