@@ -10,8 +10,8 @@ Each schema in turn contains a list of vulnerability database versions.
 import sys
 import logging
 import argparse
-from rewriter.cache.cache import Cache
-from rewriter.utils import str2bool
+from grype_cache.cache.cache import Cache
+from grype_cache.utils import str2bool
 
 
 def main():

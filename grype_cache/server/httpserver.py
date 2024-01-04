@@ -7,7 +7,7 @@ from urllib.parse import urlunparse
 import logging
 from flask import Flask, send_from_directory
 # pylint: disable=no-name-in-module
-from rewriter.cache.cache import Cache
+from grype_cache.cache.cache import Cache
 # pylint: enable=no-name-in-module
 # pylint: disable=fixme
 

@@ -8,8 +8,8 @@ Unit tests for the Listing module.
 import unittest
 import json
 # pylint: disable=no-name-in-module
-from rewriter.listing.listing import Listing
-from rewriter.server.httpserver import HttpServer
+from grype_cache.listing.listing import Listing
+from grype_cache.server.httpserver import HttpServer
 # pylint: enable=no-name-in-module
 
 

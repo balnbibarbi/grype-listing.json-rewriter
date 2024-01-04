@@ -7,7 +7,7 @@ Serve a Grype listing.json and databases over HTTP.
 import sys
 import os
 # pylint: disable=no-name-in-module
-from rewriter.server.httpserver import HttpServer
+from grype_cache.server.httpserver import HttpServer
 # pylint: enable=no-name-in-module
 
 
