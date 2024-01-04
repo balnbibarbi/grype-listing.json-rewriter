@@ -24,6 +24,13 @@ class Listing:
         """
         return self.listing['available']
 
+    @staticmethod
+    def _db_url_to_filename(db_url):
+        """
+        Convert a database URL into just the filename.
+        """
+        return db_url.rsplit('/', 1)[-1]
+
     def db_urls(self):
         """
         Enumerate over all database URLs in this listing.
@@ -31,6 +38,23 @@ class Listing:
         for schema in self.schemas().values():
             for version in schema:
                 yield version['url']
+
+    def db_filenames(self):
+        """
+        Enumerate over all database filenames in this listing.
+        """
+        for db_url in self.db_urls():
+            yield self._db_url_to_filename(db_url)
+
+    def db_urls_and_filenames(self):
+        """
+        Enumerate over all databases in this listing,
+        returning for each a (url, filename) tuple.
+        """
+        for schema in self.schemas().values():
+            for version in schema:
+                db_url = version['url']
+                yield (db_url, self._db_url_to_filename(db_url))
 
     def json(self):
         """
@@ -73,11 +97,11 @@ class Listing:
         """
         # Find the latest schema
         (latest_schema_key, latest_schema) = self._find_latest_schema()
-        logging.debug(
-            "Latest schema: %s %s",
-            latest_schema_key,
-            latest_schema
-        )
+        # logging.debug(
+        #     "Latest schema: %s %s",
+        #     latest_schema_key,
+        #     latest_schema
+        # )
         # Find the latest version in the latest schema
         (
             latest_version_build_date,
@@ -114,10 +138,5 @@ class Listing:
                 new_url = version['url'].replace(
                     old_prefix,
                     new_prefix
-                )
-                logging.debug(
-                    "Updating URL from '%s' to '%s'",
-                    version['url'],
-                    new_url
                 )
                 version['url'] = new_url

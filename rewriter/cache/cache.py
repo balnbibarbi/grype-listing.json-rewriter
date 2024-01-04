@@ -39,7 +39,8 @@ class Cache:
             LISTING_CACHE_FILENAME
         )
         self.minimise = minimise
-        self.listing = self._load_listing(self.listing_json_url)
+        self.listing = None
+        self.refresh()
 
     def set_listing(self, new_listing):
         """
@@ -58,7 +59,23 @@ class Cache:
             new_listing.rewrite_urls(self.db_url_prefix)
         logging.debug("Writing listing to '%s'", self.listing_filename)
         self._save_listing(new_listing, self.listing_filename)
+        old_listing = self.listing
         self.listing = new_listing
+        # Remove now-unreferenced database files
+        if old_listing:
+            old_filenames = set(old_listing.db_filenames())
+            new_filenames = set(new_listing.db_filenames())
+            unreferenced_filenames = old_filenames - new_filenames
+            for db_filename in unreferenced_filenames:
+                db_path = os.path.join(
+                    self.fs_root,
+                    db_filename
+                )
+                logging.debug(
+                    "Deleting no-longer-referenced database '%s'",
+                    db_path
+                )
+                os.unlink(db_path)
 
     def refresh(self):
         """
@@ -88,12 +105,13 @@ class Cache:
         Download all vulnerability databases in the given listing
         to the given output directory.
         """
-        for db_url in listing.db_urls():
-            filename = os.path.join(
+        for db_tuple in listing.db_urls_and_filenames():
+            (db_url, db_filename) = db_tuple
+            db_path = os.path.join(
                 output_dir,
-                db_url.rsplit('/', 1)[-1]
+                db_filename
             )
-            download(db_url, filename)
+            download(db_url, db_path)
 
     def download_dbs(self):
         """
