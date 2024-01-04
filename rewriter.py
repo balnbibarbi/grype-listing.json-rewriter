@@ -20,16 +20,6 @@ def main():
     """
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-d",
-        "--download-dbs",
-        help="""
-        Download vulnerability database file(s) to this directory.
-        If not specified, do not download database files.
-        """,
-        default="",
-        type=str
-    )
-    parser.add_argument(
         "-i",
         "--input",
         help="Read input listing.json from this file or URL",
@@ -46,15 +36,15 @@ def main():
     parser.add_argument(
         "-o",
         "--output",
-        help="Output a listing.json file to this path",
-        default="-",
+        help="Output databases and listing.json file to this path",
+        default="/tmp",
         type=str
     )
     parser.add_argument(
         "-u",
         "--url-prefix",
-        help="New URL prefix to replace existing prefix",
-        default="",
+        help="New database URL prefix to replace existing prefix",
+        default="http://example.com/databases",
         type=str
     )
     parser.add_argument(
@@ -69,12 +59,12 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.INFO)
-    cache_args = {}
-    if args.download_dbs:
-        cache_args['fs_root'] = args.download_dbs
-    if args.minimal:
-        cache_args['minimise'] = True
-    cache = Cache(args.url_prefix, listing_json_url=args.input, **cache_args)
+    cache = Cache(
+        args.url_prefix,
+        listing_json_url=args.input,
+        minimise=args.minimal,
+        data_dir=args.output
+    )
     cache.refresh()
     return 0
 

@@ -101,4 +101,4 @@ class HttpServer(Flask):
         """
         Serve a vulnerability database.
         """
-        return send_from_directory(self.cache.fs_root, db_file)
+        return send_from_directory(self.cache.data_dir, db_file)
