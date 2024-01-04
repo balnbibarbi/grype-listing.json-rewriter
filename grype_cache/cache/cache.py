@@ -27,15 +27,15 @@ class Cache:
     def __init__(
         self,
         db_url_prefix,
-        data_dir=DEFAULT_DATA_DIR,
+        output_dir=DEFAULT_DATA_DIR,
         listing_json_url=UPSTREAM_LISTING_JSON_URL,
         minimise=True
     ):
         self.db_url_prefix = db_url_prefix
-        self.data_dir = data_dir
+        self.output_dir = output_dir
         self.listing_json_url = listing_json_url
         self.listing_filename = os.path.join(
-            self.data_dir,
+            self.output_dir,
             LISTING_CACHE_FILENAME
         )
         self.minimise = minimise
@@ -54,7 +54,7 @@ class Cache:
         # in the hope (not enforced) that the the on-disk listing
         # never refers to a nonexistent database.
         # This could be enforced using fsync, at some performance cost.
-        self._download_listing_dbs(new_listing, self.data_dir)
+        self._download_listing_dbs(new_listing, self.output_dir)
         if self.db_url_prefix:
             new_listing.rewrite_urls(self.db_url_prefix)
         logging.debug("Writing listing to '%s'", self.listing_filename)
@@ -68,7 +68,7 @@ class Cache:
             unreferenced_filenames = old_filenames - new_filenames
             for db_filename in unreferenced_filenames:
                 db_path = os.path.join(
-                    self.data_dir,
+                    self.output_dir,
                     db_filename
                 )
                 logging.debug(
@@ -117,7 +117,7 @@ class Cache:
         """
         Download all vulnerability databases.
         """
-        self._download_listing_dbs(self.listing, self.data_dir)
+        self._download_listing_dbs(self.listing, self.output_dir)
 
     @staticmethod
     def _load_listing(input_url):

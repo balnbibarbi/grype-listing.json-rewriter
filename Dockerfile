@@ -2,10 +2,4 @@ FROM python:3
 
 COPY . .
 RUN pip3 install --no-cache-dir -r requirements.txt
-CMD \
-    ./rewriter.py \
-    --input        "${LISTING_JSON_URL}" \
-    --minimal      "${MINIMAL}" \
-    --output       "${OUTPUT_DIR}" \
-    --url-prefix   "${NEW_URL_PREFIX}" \
-    --verbose      "${VERBOSE}"
+CMD ./server.py

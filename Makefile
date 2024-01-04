@@ -1,8 +1,12 @@
 PROJECT_NAME=grype-listing.json-rewriter
 DOCKER_HUB_USERNAME:=bingbangboo
-LISTING_JSON_URL=https://toolbox-data.anchore.io/grype/databases/listing.json
-NEW_URL_PREFIX=http://example.com/databases/
+UPSTREAM_LISTING_URL=https://toolbox-data.anchore.io/grype/databases/listing.json
+SCHEME=http
+HOSTNAME=0.0.0.0
+PORT=8080
 OUTPUT_DIR=/tmp/
+BASE_URL=/
+DB_URL_COMPONENT=databases
 DOCKER_TAG=$(DOCKER_HUB_USERNAME)/$(PROJECT_NAME)
 MINIMAL=true
 VERBOSE=false
@@ -15,12 +19,17 @@ all: test local run
 .PHONY: run
 run: build
 	docker run -i \
-		-e "LISTING_JSON_URL=$(LISTING_JSON_URL)" \
-		-e "MINIMAL=$(MINIMAL)" \
+		--publish "$(PORT):$(PORT)" \
+		-e "BASE_URL=$(BASE_URL)" \
+		-e "SCHEME=$(SCHEME)" \
+		-e "HOSTNAME=$(HOSTNAME)" \
+		-e "PORT=$(PORT)" \
+		-e "DB_URL_COMPONENT=$(DB_URL_COMPONENT)" \
+		-e "UPSTREAM_LISTING_URL=$(UPSTREAM_LISTING_URL)" \
 		-e "OUTPUT_DIR=$(OUTPUT_DIR)" \
-		-e "NEW_URL_PREFIX=$(NEW_URL_PREFIX)" \
+		-e "MINIMAL=$(MINIMAL)" \
 		-e "VERBOSE=$(VERBOSE)" \
-		-v "/tmp:/tmp" \
+		-v "$(OUTPUT_DIR):$(OUTPUT_DIR)" \
 		"$(DOCKER_TAG)"
 
 .PHONY: build
@@ -34,10 +43,10 @@ push: build
 .PHONY: local
 local:
 	./rewriter.py \
-	--input        "$(LISTING_JSON_URL)" \
+	--input        "$(UPSTREAM_LISTING_URL)" \
 	--minimal      "$(MINIMAL)" \
 	--output       "$(OUTPUT_DIR)" \
-	--url-prefix   "$(NEW_URL_PREFIX)" \
+	--base-url     "$(SCHEME)://$(HOSTNAME):$(PORT)$(BASE_URL)" \
 	--verbose      "$(VERBOSE)"
 
 .PHONY: test

@@ -20,6 +20,13 @@ def main():
     """
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "-b",
+        "--base-url",
+        help="Rewrite listing to use this as the base URL",
+        default="http://example.com/databases",
+        type=str
+    )
+    parser.add_argument(
         "-i",
         "--input",
         help="Read input listing.json from this file or URL",
@@ -41,13 +48,6 @@ def main():
         type=str
     )
     parser.add_argument(
-        "-u",
-        "--url-prefix",
-        help="New database URL prefix to replace existing prefix",
-        default="http://example.com/databases",
-        type=str
-    )
-    parser.add_argument(
         "-v",
         "--verbose",
         help="Output debugging messages",
@@ -60,10 +60,10 @@ def main():
     else:
         logging.basicConfig(level=logging.INFO)
     cache = Cache(
-        args.url_prefix,
+        args.base_url,
         listing_json_url=args.input,
         minimise=args.minimal,
-        data_dir=args.output
+        output_dir=args.output
     )
     cache.refresh()
     return 0
