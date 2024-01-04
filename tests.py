@@ -29,11 +29,24 @@ class TestListing(unittest.TestCase):
                 for version in schema:
                     version['url'] = 'expected to differ'
 
+    @staticmethod
+    def load_json(filename):
+        """
+        Snarf a JSON file.
+        """
+        with open(
+            filename,
+            'r',
+            encoding='utf-8'
+        ) as filehandle:
+            return json.load(filehandle)
+
     def test_roundtrip(self):
         """
         Test round-tripping the listing.
         """
-        actual_listing = Listing("tests/input.json")
+        input_data = self.load_json("tests/input.json")
+        actual_listing = Listing(input_data)
         with open(
             "tests/expected-output/roundtrip.json",
             "r",
@@ -46,7 +59,8 @@ class TestListing(unittest.TestCase):
         """
         Test minimising the listing.
         """
-        actual_listing = Listing("tests/input.json")
+        input_data = self.load_json("tests/input.json")
+        actual_listing = Listing(input_data)
         actual_listing.minimise()
         with open(
             "tests/expected-output/minimised.json",
@@ -63,7 +77,8 @@ class TestListing(unittest.TestCase):
         """
         Test rewriting the listing.
         """
-        actual_listing = Listing("tests/input.json")
+        input_data = self.load_json("tests/input.json")
+        actual_listing = Listing(input_data)
         actual_listing.rewrite_urls('http://example.com/')
         with open(
             "tests/expected-output/rewritten.json",
@@ -82,7 +97,8 @@ class TestListing(unittest.TestCase):
         """
         Test minimising and rewriting the listing.
         """
-        actual_listing = Listing("tests/input.json")
+        input_data = self.load_json("tests/input.json")
+        actual_listing = Listing(input_data)
         actual_listing.minimise()
         actual_listing.rewrite_urls('http://example.com/')
         with open(

@@ -3,13 +3,9 @@ An Anchore Grype vulnerability database listing.json
 """
 
 
-import os
 import json
 import logging
-from ..utils import parse_iso8601, magic_open, download
-
-
-SRC_URL_PREFIX = 'https://toolbox-data.anchore.io/grype/'
+from ..utils import parse_iso8601
 
 
 class Listing:
@@ -18,19 +14,8 @@ class Listing:
     An Anchore Grype vulnerability database listing.json
     """
 
-    def __init__(self, input_url):
-        self.listing = self._load_listing_json(input_url)
-
-    @staticmethod
-    def _download_version(version, output_dir):
-        """
-        Download a specific version of a vulnerability db.
-        """
-        filename = os.path.join(
-            output_dir,
-            version['url'].rsplit('/', 1)[-1]
-        )
-        download(version['url'], filename)
+    def __init__(self, listing_data):
+        self.listing = listing_data
 
     def schemas(self):
         """
@@ -41,42 +26,17 @@ class Listing:
 
     def db_urls(self):
         """
-        Enumerate over all databse URLs in this listing.
+        Enumerate over all database URLs in this listing.
         """
         for schema in self.schemas().values():
             for version in schema:
                 yield version['url']
-
-    def download_dbs(self, output_dir):
-        """
-        Optionally, download all vulnerability databases.
-        """
-        if output_dir:
-            for schema in self.schemas().values():
-                for version in schema:
-                    self._download_version(version, output_dir)
-        else:
-            logging.info("Refraining from downloading database.")
 
     def json(self):
         """
         Return the Grype JSON representation of this listing.
         """
         return json.dumps(self.listing)
-
-    def save(self, file_name):
-        """
-        Output a Grype style listing.json file.
-        """
-        logging.info(
-            "Outputting listing.json to '%s'.",
-            file_name
-        )
-        if file_name:
-            with magic_open(file_name, "w") as output_file:
-                print(self.json(), file=output_file)
-        else:
-            logging.info("Refraining from outputting new listing.json.")
 
     def _find_latest_schema(self):
         """
@@ -133,35 +93,31 @@ class Listing:
             ]
         }
 
-    def _load_listing_json(self, input_url):
-        """
-        Load and parse a Grype style listing.json file.
-        """
-        with magic_open(input_url, "r") as input_file:
-            return json.load(input_file)
-
     def rewrite_urls(self, new_prefix):
         """
-        Replace the Anchore URL prefix on the given version's
+        Replace everything before the filename in each
         database URL with the given URL prefix.
         """
-        if new_prefix:
-            logging.debug(
-                "Replacing '%s' with '%s' in database URLs",
-                SRC_URL_PREFIX,
-                new_prefix
-            )
-            for schema in self.schemas().values():
-                for version in schema:
-                    new_url = version['url'].replace(
-                        SRC_URL_PREFIX,
-                        new_prefix
-                    )
-                    logging.debug(
-                        "Updating URL from '%s' to '%s'",
-                        version['url'],
-                        new_url
-                    )
-                    version['url'] = new_url
-        else:
-            logging.info("Refraining from updating database URLs.")
+        try:
+            db_url = next(self.db_urls())
+        except StopIteration:
+            # No database URLs to rewrite
+            return
+        old_prefix = db_url.rsplit('/', 1)[0]
+        logging.debug(
+            "Replacing '%s' with '%s' in database URLs",
+            old_prefix,
+            new_prefix
+        )
+        for schema in self.schemas().values():
+            for version in schema:
+                new_url = version['url'].replace(
+                    old_prefix,
+                    new_prefix
+                )
+                logging.debug(
+                    "Updating URL from '%s' to '%s'",
+                    version['url'],
+                    new_url
+                )
+                version['url'] = new_url

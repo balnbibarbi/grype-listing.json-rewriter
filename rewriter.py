@@ -10,7 +10,7 @@ Each schema in turn contains a list of vulnerability database versions.
 import sys
 import logging
 import argparse
-from rewriter.listing.listing import Listing
+from rewriter.cache.cache import Cache
 from rewriter.utils import str2bool
 
 
@@ -69,17 +69,13 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.INFO)
-    # Load the listing.json list of vulnerability database schemas
-    listing = Listing(args.input)
-    # Optionally, subset the listing to only the latest schema and version
+    cache_args = {}
+    if args.download_dbs:
+        cache_args['fs_root'] = args.download_dbs
     if args.minimal:
-        listing.minimise()
-    # Optionally, download vulnerability database(s)
-    listing.download_dbs(args.download_dbs)
-    # Optionally, rewrite the database URLs in the listing
-    listing.rewrite_urls(args.url_prefix)
-    # Optionally, output a listing.json
-    listing.save(args.output)
+        cache_args['minimise'] = True
+    cache = Cache(args.url_prefix, listing_json_url=args.input, **cache_args)
+    cache.refresh()
     return 0
 
 
