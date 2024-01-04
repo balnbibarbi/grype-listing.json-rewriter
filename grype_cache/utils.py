@@ -5,6 +5,8 @@ Time and HTTP-related utilities.
 
 import io
 import sys
+import os
+import time
 from datetime import datetime
 import logging
 import requests
@@ -59,7 +61,14 @@ def download(url, filename):
     Download a URL to a local file.
     """
     logging.info("Downloading '%s' to '%s'", url, filename)
-    with (open(filename, "wb")) as outfh:
-        req = requests.get(url, timeout=HTTP_TIMEOUT_MAX)
+    stat_res = os.stat(filename)
+    with (open(filename, "a+b")) as outfh:
+        headers = {}
+        headers['If-Modified-Since'] = time.strftime(
+            '%a, %d %b %Y %H:%M:%S GMT',
+            time.gmtime(stat_res.st_mtime)
+        )
+        headers['Range'] = f'bytes=0-{stat_res.st_size}'
+        req = requests.get(url, timeout=HTTP_TIMEOUT_MAX, headers=headers)
         req.raise_for_status()
         outfh.write(req.content)
