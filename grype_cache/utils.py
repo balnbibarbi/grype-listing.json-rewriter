@@ -68,7 +68,7 @@ def download(url, filename):
             '%a, %d %b %Y %H:%M:%S GMT',
             time.gmtime(stat_res.st_mtime)
         )
-        headers['Range'] = f'bytes=0-{stat_res.st_size}'
+        headers['Range'] = f'bytes={stat_res.st_size}-'
         req = requests.get(url, timeout=HTTP_TIMEOUT_MAX, headers=headers)
         req.raise_for_status()
         outfh.write(req.content)
