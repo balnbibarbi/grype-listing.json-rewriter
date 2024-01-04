@@ -70,6 +70,6 @@ k8s:
 	fi ; \
 	curl --verbose --fail "http://$$ip/listing.json" \
 	| jq -r '.available[][].url' \
-	| sed -r -e "s/grype-db/$$ip/" \
+	| sed -r -e "s/$(HOSTNAME):$(PORT)/$$ip/" \
 	| xargs curl --verbose --fail --output /dev/null
 	kubectl delete ns "$(K8S_NS)"
