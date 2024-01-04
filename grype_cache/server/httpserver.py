@@ -18,6 +18,7 @@ DEFAULT_HOSTNAME = '0.0.0.0'
 DEFAULT_PORT = 8080
 DEFAULT_SCHEME = 'http'
 DEFAULT_DB_URL_COMPONENT = 'databases'
+LIVENESS_URL = 'healthz'
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -60,6 +61,11 @@ class HttpServer(Flask):
         self.add_url_rule(
             self.listing_url(),
             view_func=self.view_listing,
+            subdomain=None
+        )
+        self.add_url_rule(
+            self.liveness_url(),
+            view_func=self.view_liveness,
             subdomain=None
         )
         self.add_url_rule(
@@ -106,6 +112,12 @@ class HttpServer(Flask):
         """
         return self.base_url + self.cached_listing_url
 
+    def liveness_url(self):
+        """
+        Return the URL for the liveness check.
+        """
+        return self.base_url + LIVENESS_URL
+
     def run(self, *args, **kwargs):
         """
         Flask entry point. Runs the web application.
@@ -128,3 +140,9 @@ class HttpServer(Flask):
         Serve a vulnerability database.
         """
         return send_from_directory(self.cache.output_dir, db_file)
+
+    def view_liveness(self):
+        """
+        Serve a successful response.
+        """
+        return ""

@@ -23,43 +23,59 @@ spec:
         app: grype-db
         tier: web
     spec:
-      initContainers:
-      - name: download
+      containers:
+      - name: grype-db
         image: bingbangboo/grype-listing.json-rewriter
         imagePullPolicy: Always
+        ports:
+        - name: app-port
+          containerPort: 8080
+          hostPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: app-port
+          failureThreshold: 1
+          periodSeconds: 120
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: app-port
+          failureThreshold: 1
+          periodSeconds: 120
+        startupProbe:
+          httpGet:
+            path: /healthz
+            port: app-port
+          failureThreshold: 2
+          periodSeconds: 120
         resources:
           requests:
             cpu: "0.1"
             memory: "200Mi"
         env:
-          - name: DB_OUTPUT_DIR
-            value: "/databases"
-          - name: LISTING_JSON_URL
+          - name: BASE_URL
+            value: /
+          - name: SCHEME
+            value: "http"
+          - name: HOSTNAME
+            value: "grype-db"
+          - name: PORT
+            value: "80"
+          - name: DB_URL_COMPONENT
+            value: "databases"
+          - name: UPSTREAM_LISTING_URL
             value: "https://toolbox-data.anchore.io/grype/databases/listing.json"
+          - name: OUTPUT_DIR
+            value: "/databases"
           - name: MINIMAL
             value: "true"
-          - name: OUTPUT_LISTING_JSON
-            value: "/databases/listing.json"
-          - name: NEW_URL_PREFIX
-            value: http://grype-db/
           - name: VERBOSE
-            value: "false"
+            value: "true"
         volumeMounts:
         - name: databases
           mountPath: /databases
           readOnly: false
-      containers:
-      - name: grype-db
-        image: nginx
-        imagePullPolicy: Always
-        resources:
-          requests:
-            cpu: "0.1"
-            memory: "200Mi"
-        volumeMounts:
-        - name: databases
-          mountPath: /usr/share/nginx/html
-          readOnly: true
       serviceAccount: grype-db
       automountServiceAccountToken: false
   volumeClaimTemplates:

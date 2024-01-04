@@ -40,7 +40,8 @@ class Cache:
         )
         self.minimise = minimise
         self.listing = None
-        self.refresh()
+        # This delays initialisation too much, so is left to do lazily later
+        # self.refresh()
 
     def set_listing(self, new_listing):
         """
