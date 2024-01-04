@@ -27,28 +27,13 @@ spec:
       - name: grype-db
         image: bingbangboo/grype-listing.json-rewriter
         imagePullPolicy: Always
-        ports:
-        - name: app-port
-          containerPort: 8080
-          hostPort: 8080
         livenessProbe:
           httpGet:
             path: /healthz
-            port: app-port
-          failureThreshold: 1
-          periodSeconds: 120
-        readinessProbe:
-          httpGet:
-            path: /healthz
-            port: app-port
-          failureThreshold: 1
-          periodSeconds: 120
-        startupProbe:
-          httpGet:
-            path: /healthz
-            port: app-port
-          failureThreshold: 2
-          periodSeconds: 120
+            port: 8080
+          failureThreshold: 3
+          initialDelaySeconds: 10
+          periodSeconds: 10
         resources:
           requests:
             cpu: "0.1"
@@ -59,9 +44,9 @@ spec:
           - name: SCHEME
             value: "http"
           - name: HOSTNAME
-            value: "grype-db"
+            value: "0.0.0.0"
           - name: PORT
-            value: "80"
+            value: "8080"
           - name: DB_URL_COMPONENT
             value: "databases"
           - name: UPSTREAM_LISTING_URL
@@ -98,6 +83,7 @@ spec:
   type: LoadBalancer
   ports:
   - port: 80
+    targetPort: 8080
     name: web
   selector:
     app: grype-db

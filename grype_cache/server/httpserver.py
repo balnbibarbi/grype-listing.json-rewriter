@@ -4,6 +4,7 @@ A simple HTTP server for a Grype catalogue and database files.
 
 
 import logging
+from urllib.parse import ParseResult
 from flask import Flask, send_from_directory
 # pylint: disable=no-name-in-module
 from grype_cache.cache.cache import Cache
@@ -55,21 +56,34 @@ class HttpServer(Flask):
         )
         self.hostname = hostname
         self.port = port
-        self.base_url = base_url
+        self.db_url_component = db_url_component
+        self.base_url = ParseResult(
+            scheme,
+            hostname + ':' + str(port),
+            base_url,
+            "",
+            "",
+            ""
+        )
         self.cached_listing_url = cached_listing_url
-        db_url_prefix = self.base_url + db_url_component
         self.add_url_rule(
-            self.listing_url(),
+            self.listing_url().geturl(),
             view_func=self.view_listing,
             subdomain=None
         )
         self.add_url_rule(
-            self.liveness_url(),
+            self.liveness_url().geturl(),
             view_func=self.view_liveness,
             subdomain=None
         )
+        # Our clients need the prefix (with no Flask pattern variables),
+        # in absolute form so they can find us.
+        # Flask needs a pattern variable appended to its URL, and requires
+        # relative URLs.
+        db_url_prefix_absolute = self.db_url_prefix()
+        db_url_pattern_relative = self.relativise_url(self.db_url_pattern())
         self.add_url_rule(
-            db_url_prefix + '/<db_file>',
+            db_url_pattern_relative.geturl(),
             view_func=self.view_download_db,
             subdomain=None
         )
@@ -88,7 +102,7 @@ class HttpServer(Flask):
         self.config['APPLICATION_ROOT'] = base_url
         self.config['PREFERRED_URL_SCHEME'] = scheme
         self.cache = Cache(
-            db_url_prefix,
+            db_url_prefix_absolute.geturl(),
             **(
                 {} if upstream_listing_url is None else {
                     "listing_json_url": upstream_listing_url
@@ -106,17 +120,57 @@ class HttpServer(Flask):
             )
         )
 
+    def fixed_url_for(self, *path_components):
+        """
+        Work like Flask's url_for, except actually work
+        """
+        return self.base_url._replace(
+            path=self.base_url.path + '/'.join(
+                path_components
+            )
+        )
+
+    @staticmethod
+    def relativise_url(url):
+        """
+        Convert an absolute URL to a relative one.
+        """
+        return url._replace(
+            scheme='',
+            netloc=''
+        )
+
     def listing_url(self):
         """
         Return the URL for the listing.
         """
-        return self.base_url + self.cached_listing_url
+        return self.relativise_url(
+            self.fixed_url_for(
+                self.cached_listing_url
+            )
+        )
 
     def liveness_url(self):
         """
         Return the URL for the liveness check.
         """
-        return self.base_url + LIVENESS_URL
+        return self.relativise_url(
+            self.fixed_url_for(
+                LIVENESS_URL
+            )
+        )
+
+    def db_url_prefix(self):
+        """
+        Return the URL prefix for database files.
+        """
+        return self.fixed_url_for(self.db_url_component)
+
+    def db_url_pattern(self):
+        """
+        Return the URL pattern for database files.
+        """
+        return self.fixed_url_for(self.db_url_component, '<db_file>')
 
     def run(self, *args, **kwargs):
         """
