@@ -41,12 +41,18 @@ spec:
         env:
           - name: BASE_URL
             value: /
-          - name: SCHEME
+          - name: BIND_SCHEME
             value: "http"
-          - name: HOSTNAME
+          - name: PUBLIC_SCHEME
+            value: "http"
+          - name: PUBLIC_HOSTNAME
+            value: "grype-db"
+          - name: BIND_HOSTNAME
             value: "0.0.0.0"
-          - name: PORT
+          - name: BIND_PORT
             value: "8080"
+          - name: PUBLIC_PORT
+            value: "80"
           - name: DB_URL_COMPONENT
             value: "databases"
           - name: UPSTREAM_LISTING_URL

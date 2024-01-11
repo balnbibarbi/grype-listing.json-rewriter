@@ -55,9 +55,15 @@ test:
 	./tests.py
 
 .PHONY: k8s
-k8s:
+k8s: k8s_deploy k8s_runtest k8s_undeploy
+
+.PHONY: k8s_deploy
+k8s_deploy:
 	if kubectl get ns "$(K8S_NS)" > /dev/null 2>&1 ; then true ; else kubectl create ns "$(K8S_NS)" ; fi
 	kubectl apply -f statefulset.yaml -n "$(K8S_NS)"
+
+.PHONY: k8s_runtest
+k8s_runtest: k8s_deploy
 	for attempt in `seq 1 "$(MAX_LB_IP_ATTEMPTS)"` ; do \
 		ip=`kubectl get svc -n grype-db "$(K8S_NS)" -o=jsonpath='{.status.loadBalancer.ingress[0].ip}'`; \
 		if test -n "$$ip" ; then \
@@ -69,8 +75,20 @@ k8s:
 		echo "No LoadBalancer IP after $(MAX_LB_IP_ATTEMPTS) attempts" ; \
 		exit 1 ; \
 	fi ; \
-	curl --verbose --fail "http://$$ip/listing.json" \
-	| jq -r '.available[][].url' \
-	| sed -r -e "s/$(HOSTNAME):$(PORT)/$$ip/" \
-	| xargs curl --verbose --fail --output /dev/null
+	listing_url="http://$$ip/listing.json" ; \
+	echo "Fetching listing from URL '$$listing_url'..." 1>&2 ; \
+	db_url=$$(\
+		curl --verbose --fail "$$listing_url" \
+		| jq -r '.available[][].url' \
+	) ; \
+	echo "Served database URL is '$$db_url'" 1>&2 ; \
+	db_url=$$(\
+		echo "$$db_url" | \
+		sed -r -e "s/grype-db/$$ip/" \
+	) ; \
+	echo "Fetching database from URL '$$db_url'" 1>&2 ; \
+	curl --verbose --fail --output /dev/null "$$db_url"
+
+.PHONY: k8s_undeploy
+k8s_undeploy:
 	kubectl delete ns "$(K8S_NS)"
