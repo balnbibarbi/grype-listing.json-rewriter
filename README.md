@@ -8,10 +8,13 @@ Downloads and caches an offline copy of the latest Grype vulnerability database.
 | Setting name | Purpose | Default |
 | ------------ | ------- | ------- |
 | BASE_URL | Used to construct database URLs | / |
-| SCHEME | Used to construct database URLs | http |
-| HOSTNAME | Used to construct database URLs | localhost |
-| PORT | Used to construct database URLs | 8080 |
+| PUBLIC_SCHEME | Used to construct database URLs | http |
+| PUBLIC_HOSTNAME | Used to construct database URLs | 127.0.0.1 |
+| PUBLIC_PORT | Used to construct database URLs | 8080 |
 | DB_URL_COMPONENT | Used to construct database URLs | /databases |
+| BIND_SCHEME | Protocol directly served: http or https | http |
+| BIND_HOSTNAME | IP address(es) to bind/listen on; 0.0.0.0 means INADDR_ANY | 0.0.0.0 |
+| BIND_PORT | TCP port to bind/listen on | 8080 |
 | UPSTREAM_LISTING_URL | URL for upstream listing.json | <https://toolbox-data.anchore.io/grype/databases/listing.json> |
 | OUTPUT_DIR | Cache directory for listing and database files | /tmp |
 | MINIMISE | If true, only cache the latest vulnerability database. If false, cache all versions. | true |

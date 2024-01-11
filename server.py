@@ -27,9 +27,12 @@ def main():
     kwargs = {}
     for var_name in (
         'base_url',
-        'scheme',
-        'hostname',
-        'port',
+        'bind_scheme',
+        'bind_hostname',
+        'bind_port',
+        'public_scheme',
+        'public_hostname',
+        'public_port',
         'db_url_component',
         'upstream_listing_url',
         'output_dir',

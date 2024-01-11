@@ -13,11 +13,14 @@ from ..utils import str2bool
 
 
 DEFAULT_BASE_URL = '/'
-DEFAULT_CACHED_LISTING_URL = 'listing.json'
-DEFAULT_HOSTNAME = '0.0.0.0'
-DEFAULT_PORT = 8080
-DEFAULT_SCHEME = 'http'
+DEFAULT_BIND_HOSTNAME = '0.0.0.0'
+DEFAULT_PUBLIC_HOSTNAME = '127.0.0.1'
+DEFAULT_BIND_PORT = 8080
+DEFAULT_PUBLIC_PORT = 8080
+DEFAULT_BIND_SCHEME = 'http'
+DEFAULT_PUBLIC_SCHEME = 'http'
 DEFAULT_DB_URL_COMPONENT = 'databases'
+DEFAULT_CACHED_LISTING_URL = 'listing.json'
 LIVENESS_URL = 'healthz'
 
 
@@ -35,9 +38,12 @@ class HttpServer(Flask):
         self,
         package_name,
         base_url=DEFAULT_BASE_URL,
-        scheme=DEFAULT_SCHEME,
-        hostname=DEFAULT_HOSTNAME,
-        port=DEFAULT_PORT,
+        bind_scheme=DEFAULT_BIND_SCHEME,
+        public_scheme=DEFAULT_PUBLIC_SCHEME,
+        bind_hostname=DEFAULT_BIND_HOSTNAME,
+        public_hostname=DEFAULT_PUBLIC_HOSTNAME,
+        bind_port=DEFAULT_BIND_PORT,
+        public_port=DEFAULT_PUBLIC_PORT,
         db_url_component=DEFAULT_DB_URL_COMPONENT,
         upstream_listing_url=None,
         output_dir=None,
@@ -53,12 +59,13 @@ class HttpServer(Flask):
             host_matching=False,
             template_folder=None
         )
-        self.hostname = hostname
-        self.port = port
+        self.bind_scheme = bind_scheme
+        self.bind_hostname = bind_hostname
+        self.bind_port = bind_port
         self.db_url_component = db_url_component
-        self.base_url = ParseResult(
-            scheme,
-            hostname + ':' + str(port),
+        self.public_base_url = ParseResult(
+            public_scheme,
+            public_hostname + ':' + str(public_port),
             base_url,
             "",
             "",
@@ -66,23 +73,25 @@ class HttpServer(Flask):
         )
         self.cached_listing_url = cached_listing_url
         self.add_url_rule(
-            self.listing_url().geturl(),
+            self.relativise_url(
+                self.public_listing_url()
+            ).geturl(),
             view_func=self.view_listing,
             subdomain=None
         )
         self.add_url_rule(
-            self.liveness_url().geturl(),
+            self.relativise_url(
+                self.public_liveness_url()
+            ).geturl(),
             view_func=self.view_liveness,
             subdomain=None
         )
-        # Our clients need the prefix (with no Flask pattern variables),
-        # in absolute form so they can find us.
         # Flask needs a pattern variable appended to its URL, and requires
         # relative URLs.
-        db_url_prefix_absolute = self.db_url_prefix()
-        db_url_pattern_relative = self.relativise_url(self.db_url_pattern())
         self.add_url_rule(
-            db_url_pattern_relative.geturl(),
+            self.relativise_url(
+                self.public_db_pattern()
+            ).geturl(),
             view_func=self.view_download_db,
             subdomain=None
         )
@@ -99,9 +108,11 @@ class HttpServer(Flask):
         # So we cannot use flask's url_for below.
         # self.config['SERVER_NAME'] = netloc
         self.config['APPLICATION_ROOT'] = base_url
-        self.config['PREFERRED_URL_SCHEME'] = scheme
+        self.config['PREFERRED_URL_SCHEME'] = public_scheme
         self.cache = Cache(
-            db_url_prefix_absolute.geturl(),
+            # Our clients need the public absolute URL prefix
+            # (with no Flask pattern variables).
+            self.public_db_prefix().geturl(),
             **(
                 {} if upstream_listing_url is None else {
                     "listing_json_url": upstream_listing_url
@@ -119,12 +130,12 @@ class HttpServer(Flask):
             )
         )
 
-    def fixed_url_for(self, *path_components):
+    def public_url_for(self, *path_components):
         """
-        Work like Flask's url_for, except actually work
+        Return the public URL for the given path.
         """
-        return self.base_url._replace(
-            path=self.base_url.path + '/'.join(
+        return self.public_base_url._replace(
+            path=self.public_base_url.path + '/'.join(
                 path_components
             )
         )
@@ -139,37 +150,33 @@ class HttpServer(Flask):
             netloc=''
         )
 
-    def listing_url(self):
+    def public_listing_url(self):
         """
-        Return the URL for the listing.
+        Return the public URL for the listing.
         """
-        return self.relativise_url(
-            self.fixed_url_for(
-                self.cached_listing_url
-            )
+        return self.public_url_for(
+            self.cached_listing_url
         )
 
-    def liveness_url(self):
+    def public_liveness_url(self):
         """
         Return the URL for the liveness check.
         """
-        return self.relativise_url(
-            self.fixed_url_for(
-                LIVENESS_URL
-            )
+        return self.public_url_for(
+            LIVENESS_URL
         )
 
-    def db_url_prefix(self):
+    def public_db_prefix(self):
         """
-        Return the URL prefix for database files.
+        Return the public URL prefix for database files.
         """
-        return self.fixed_url_for(self.db_url_component)
+        return self.public_url_for(self.db_url_component)
 
-    def db_url_pattern(self):
+    def public_db_pattern(self):
         """
-        Return the URL pattern for database files.
+        Return the public URL pattern for database files.
         """
-        return self.fixed_url_for(self.db_url_component, '<db_file>')
+        return self.public_url_for(self.db_url_component, '<db_file>')
 
     def run(self, *args, **kwargs):
         """
@@ -178,8 +185,8 @@ class HttpServer(Flask):
         return super().run(
             *args, **kwargs,
             debug=True,
-            host=self.hostname,
-            port=self.port
+            host=self.bind_hostname,
+            port=self.bind_port
         )
 
     def view_listing(self):

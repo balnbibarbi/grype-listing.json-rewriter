@@ -76,3 +76,4 @@ def download(url, filename):
         req = requests.get(url, timeout=HTTP_TIMEOUT_MAX, headers=headers)
         req.raise_for_status()
         outfh.write(req.content)
+        outfh.close()
