@@ -42,12 +42,7 @@ push: build
 
 .PHONY: local
 local:
-	./rewriter.py \
-	--input        "$(UPSTREAM_LISTING_URL)" \
-	--minimal      "$(MINIMAL)" \
-	--output       "$(OUTPUT_DIR)" \
-	--base-url     "$(SCHEME)://$(HOSTNAME):$(PORT)$(BASE_URL)" \
-	--verbose      "$(VERBOSE)"
+	./server.py
 
 .PHONY: test
 test:
