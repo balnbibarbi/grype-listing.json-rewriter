@@ -6,6 +6,7 @@ Serve a Grype listing.json and databases over HTTP.
 
 import sys
 import os
+import signal
 # pylint: disable=no-name-in-module
 from grype_cache.server.httpserver import HttpServer
 # pylint: enable=no-name-in-module
@@ -18,6 +19,17 @@ def get_param(var_name):
     then looked up in the process environment.
     """
     return os.getenv(var_name.upper())
+
+
+def exit_gracefully(signum, frame):
+    """
+    Gracefully terminate the process.
+    """
+    if signum is not None:
+        del signum
+    if frame is not None:
+        del frame
+    sys.exit(0)
 
 
 def main():
@@ -41,6 +53,8 @@ def main():
         value = get_param(var_name)
         if value is not None:
             kwargs[var_name] = value
+    signal.signal(signal.SIGINT, exit_gracefully)
+    signal.signal(signal.SIGTERM, exit_gracefully)
     app = HttpServer(
         __name__,
         **kwargs
