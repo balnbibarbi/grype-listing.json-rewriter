@@ -1,9 +1,12 @@
 PROJECT_NAME=grype-listing.json-rewriter
 DOCKER_HUB_USERNAME:=bingbangboo
 UPSTREAM_LISTING_URL=https://toolbox-data.anchore.io/grype/databases/listing.json
-SCHEME=http
-HOSTNAME=0.0.0.0
-PORT=8080
+PUBLIC_SCHEME=http
+BIND_SCHEME=http
+PUBLIC_HOSTNAME=localhost
+BIND_HOSTNAME=0.0.0.0
+PUBLIC_PORT=8080
+BIND_PORT=8080
 OUTPUT_DIR=/tmp/
 BASE_URL=/
 DB_URL_COMPONENT=databases
@@ -19,11 +22,14 @@ all: test local run
 .PHONY: run
 run: build
 	docker run -i \
-		--publish "$(PORT):$(PORT)" \
+		--publish "$(PUBLIC_PORT):$(BIND_PORT)" \
 		-e "BASE_URL=$(BASE_URL)" \
-		-e "SCHEME=$(SCHEME)" \
-		-e "HOSTNAME=$(HOSTNAME)" \
-		-e "PORT=$(PORT)" \
+		-e "PUBLIC_SCHEME=$(PUBLIC_SCHEME)" \
+		-e "PUBLIC_HOSTNAME=$(PUBLIC_HOSTNAME)" \
+		-e "PUBLIC_PORT=$(PUBLIC_PORT)" \
+		-e "BIND_SCHEME=$(BIND_SCHEME)" \
+		-e "BIND_HOSTNAME=$(BIND_HOSTNAME)" \
+		-e "BIND_PORT=$(BIND_PORT)" \
 		-e "DB_URL_COMPONENT=$(DB_URL_COMPONENT)" \
 		-e "UPSTREAM_LISTING_URL=$(UPSTREAM_LISTING_URL)" \
 		-e "OUTPUT_DIR=$(OUTPUT_DIR)" \
