@@ -7,11 +7,11 @@ Downloads and caches an offline copy of the latest Grype vulnerability database.
 
 | Setting name | Purpose | Default |
 | ------------ | ------- | ------- |
-| BASE_URL | Used to construct database URLs | / |
-| PUBLIC_SCHEME | Used to construct database URLs | http |
-| PUBLIC_HOSTNAME | Used to construct database URLs | 127.0.0.1 |
-| PUBLIC_PORT | Used to construct database URLs | 8080 |
-| DB_URL_COMPONENT | Used to construct database URLs | /databases |
+| BASE_URL | Used to construct self-referential database URLs | / |
+| PUBLIC_SCHEME | Used to construct self-referential database URLs | http |
+| PUBLIC_HOSTNAME | Used to construct self-referential database URLs | 127.0.0.1 |
+| PUBLIC_PORT | Used to construct self-referential database URLs | 8080 |
+| DB_URL_COMPONENT | Used to construct self-referential database URLs | /databases |
 | BIND_SCHEME | Protocol directly served: http or https | http |
 | BIND_HOSTNAME | IP address(es) to bind/listen on; 0.0.0.0 means INADDR_ANY | 0.0.0.0 |
 | BIND_PORT | TCP port to bind/listen on | 8080 |
@@ -34,7 +34,7 @@ This will:
 - Download the latest Grype vulnerability database listing
 - Download the latest Grype vulnerability database referenced in the listing
 - Output a modified vulnerability database listing, referencing only the latest vulnerability database
-- Rewrite the URLs in the listing so they all begin with 'example.com'
+- Rewrite the database URLs in the listing so they are all self-referential
 - Serve the listing and database over the configured protocol, hostname and port
 
 ### Deploying to Kubernetes
